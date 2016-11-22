@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   roscpp
   sensor_msgs
+  OpenCV
 )
 
 ## System dependencies are found with CMake's conventions
@@ -100,7 +101,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+  INCLUDE_DIRS include
 #  LIBRARIES project_rsc
 #  CATKIN_DEPENDS cv_bridge roscpp sensor_msgs
 #  DEPENDS system_lib
@@ -115,6 +116,7 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -128,16 +130,14 @@ include_directories(
 # add_dependencies(project_rsc ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(project_rsc_node src/project_rsc_node.cpp)
+add_executable(face_detection_node src/face_detection.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(project_rsc_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(project_rsc_node
-#   ${catkin_LIBRARIES}
-# )
+ target_link_libraries(face_detection_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
 #############
 ## Install ##
