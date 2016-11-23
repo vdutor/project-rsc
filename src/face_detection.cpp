@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iostream>
 #include <fstream>
+#include <string>
 #include <sstream>
 
 #include <ros/ros.h>
@@ -9,14 +10,10 @@
 #include <cv_bridge/cv_bridge.h>
 
 // both ways of including work on vincent's machine
-//#include <opencv2/highgui.hpp>
-#include <opencv2/highgui/highgui.hpp> 
-#include "opencv2/contrib/contrib.hpp"
-#include "opencv2/core/core.hpp"
-#include "opencv2/highgui/highgui.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/objdetect/objdetect.hpp"
+#include <opencv2/opencv.hpp>
+#include "opencv2/face.hpp"
 
+using namespace cv::face;
 using namespace cv;
 using namespace std;
 
@@ -25,14 +22,15 @@ static const uint32_t MY_ROS_QUEUE_SIZE = 1000;
 int ctr = 0;
 int im_width; 
 int im_height;
+const std::string names[3] = {"vincent", "jonas", "alexis"};
 CascadeClassifier haar_cascade;
-//Ptr<cv::face::FaceRecognizer> model = cv::face::createFisherFaceRecognizer();
 Ptr<FaceRecognizer> model = createFisherFaceRecognizer();
 
 
 void read_csv(vector<Mat>& images, vector<int>& labels, char separator = ';')
 {
-    string filename = "../res/faces.csv";
+    // TODO: fix hard coded path
+    string filename = "src/project_rsc/res/faces2.csv";
     std::ifstream file(filename.c_str(), ifstream::in);
     if (!file)
     {
@@ -42,12 +40,15 @@ void read_csv(vector<Mat>& images, vector<int>& labels, char separator = ';')
     string line, path, classlabel;
     while (getline(file, line))
     {
+        cout << line << endl;
         stringstream liness(line);
         getline(liness, path, separator);
         getline(liness, classlabel);
         if(!path.empty() && !classlabel.empty())
         {
-            images.push_back(imread(path, 0));
+            Mat m;
+            cvtColor(imread(path,1),m,CV_BGR2GRAY);
+            images.push_back(m);
             labels.push_back(atoi(classlabel.c_str()));
         }
     }
@@ -58,6 +59,8 @@ void init_model()
     vector<Mat> images;
     vector<int> labels;
     read_csv(images, labels);
+    // TODO ideally the model is only trained once, and then loaded
+    // this funcitonallity is available in opencv
     model->train(images, labels);
 }
 
@@ -66,11 +69,11 @@ void recognize_face(Mat original, Mat gray, Rect face_contour)
     //Crop the face from the image. 
     Mat face = gray(face_contour);
     Mat face_resized;
-    cv::resize(face, face_resized, Size(im_width, im_height), 1.0, 1.0, INTER_CUBIC);
+    cv::resize(face, face_resized, Size(200, 200), 1.0, 1.0, INTER_CUBIC);
     // Now perform the prediction
     int prediction = model->predict(face_resized);
     // Create the text we will annotate the box with:
-    string box_text = format("Prediction = %d", prediction);
+    string box_text = names[prediction];//format("Prediction = %d", prediction);
     // Calculate the position for annotated text
     int pos_x = std::max(face_contour.tl().x - 10, 0);
     int pos_y = std::max(face_contour.tl().y - 10, 0);
