@@ -9,7 +9,6 @@
 #include <sensor_msgs/image_encodings.h>
 #include <cv_bridge/cv_bridge.h>
 
-// both ways of including work on vincent's machine
 #include <opencv2/opencv.hpp>
 #include "opencv2/face.hpp"
 
@@ -20,45 +19,45 @@ using namespace std;
 static const uint32_t MY_ROS_QUEUE_SIZE = 1000;
 
 int ctr = 0;
-int im_width; 
+int im_width;
 int im_height;
 const std::string names[3] = {"vincent", "jonas", "alexis"};
 CascadeClassifier haar_cascade;
 Ptr<FaceRecognizer> model = createFisherFaceRecognizer();
 
 
-void read_csv(vector<Mat>& images, vector<int>& labels, char separator = ';')
+void read_csv(string res_path, vector<Mat>& images, vector<int>& labels, char separator = ';')
 {
-    // TODO: fix hard coded path
-    string filename = "src/project_rsc/res/faces2.csv";
+    string filename = res_path + "faces.csv";
+
     std::ifstream file(filename.c_str(), ifstream::in);
     if (!file)
     {
         string error_message = "No valid input file was given, please check the given filename.";
         CV_Error(CV_StsBadArg, error_message);
     }
-    string line, path, classlabel;
+    string line, im_name, classlabel;
     while (getline(file, line))
     {
         cout << line << endl;
         stringstream liness(line);
-        getline(liness, path, separator);
+        getline(liness, im_name, separator);
         getline(liness, classlabel);
-        if(!path.empty() && !classlabel.empty())
+        if(!im_name.empty() && !classlabel.empty())
         {
             Mat m;
-            cvtColor(imread(path,1),m,CV_BGR2GRAY);
+            cvtColor(imread(res_path + im_name,1),m,CV_BGR2GRAY);
             images.push_back(m);
             labels.push_back(atoi(classlabel.c_str()));
         }
     }
 }
 
-void init_model()
+void init_model(string res_path)
 {
     vector<Mat> images;
     vector<int> labels;
-    read_csv(images, labels);
+    read_csv(res_path, images, labels);
     // TODO ideally the model is only trained once, and then loaded
     // this funcitonallity is available in opencv
     model->train(images, labels);
@@ -66,7 +65,7 @@ void init_model()
 
 void recognize_face(Mat original, Mat gray, Rect face_contour)
 {
-    //Crop the face from the image. 
+    //Crop the face from the image.
     Mat face = gray(face_contour);
     Mat face_resized;
     cv::resize(face, face_resized, Size(200, 200), 1.0, 1.0, INTER_CUBIC);
@@ -101,15 +100,15 @@ void detect_faces(Mat frame)
 
 void imgage_rgb_cb(const sensor_msgs::Image::ConstPtr& msg)
 {
-    try 
+    try
     {
         cv_bridge::CvImageConstPtr cv_ptr;
         cv_ptr = cv_bridge::toCvShare(msg);
-        if(ctr++ % 100 == 1) 
+        if(ctr++ % 100 == 1)
             detect_faces(cv_ptr->image);
         //cv::imshow("foo", cv_ptr->image);
         //cv::waitKey(1);  // Update screen
-    } catch (const cv_bridge::Exception& e) 
+    } catch (const cv_bridge::Exception& e)
     {
         ROS_ERROR("cv_bridge exception: %s", e.what());
     }
@@ -117,10 +116,17 @@ void imgage_rgb_cb(const sensor_msgs::Image::ConstPtr& msg)
 
 int main(int argc, char* argv[])
 {
+    if (argc != 2) {
+        cout << "usage: " << argv[0] << " </path/to/resource_folder>" << endl;
+        exit(1);
+    }
+
+    string res_fldr = string(argv[1]);
+
     ros::init(argc, argv, "foo");
 
-    init_model();
-    haar_cascade.load("/usr/local/src/opencv-3.1.0/data/haarcascades/haarcascade_frontalface_default.xml");
+    init_model(res_fldr);
+    haar_cascade.load(res_fldr + "haarcascade_frontalface_default.xml");
     VideoCapture cap(0);
     Mat frame;
     while(1)
@@ -129,12 +135,12 @@ int main(int argc, char* argv[])
        detect_faces(frame);
     }
 
-    //ros::NodeHandle nh;
-    // ros::Subscriber sub = nh.subscribe("camera/rgb/image_raw", MY_ROS_QUEUE_SIZE, imgcb);
-    //ros::Subscriber sub = nh.subscribe("camera/rgb/image_color", MY_ROS_QUEUE_SIZE, imgage_rgb_cb);
+    // ros::NodeHandle nh;
+    // // ros::Subscriber sub = nh.subscribe("camera/rgb/image_raw", MY_ROS_QUEUE_SIZE, imgcb);
+    // ros::Subscriber sub = nh.subscribe("camera/rgb/image_color", MY_ROS_QUEUE_SIZE, imgage_rgb_cb);
 
-    //cv::namedWindow("foo");
-    //ros::spin();
-    //Mat frame;
+    // cv::namedWindow("foo");
+    // ros::spin();
+    // Mat frame;
     return 0;
 }
