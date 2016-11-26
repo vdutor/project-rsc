@@ -105,10 +105,12 @@ void imgage_rgb_cb(const sensor_msgs::Image::ConstPtr& msg)
     {
         cv_bridge::CvImageConstPtr cv_ptr;
         cv_ptr = cv_bridge::toCvShare(msg);
-        if(ctr++ % 100 == 1) 
-            detect_faces(cv_ptr->image);
-        //cv::imshow("foo", cv_ptr->image);
-        //cv::waitKey(1);  // Update screen
+        if(ctr++ % 3 == 0) detect_faces(cv_ptr->image);
+        else
+        {
+            cv::imshow("foo", cv_ptr->image);
+            cv::waitKey(1);  // Update screen
+        }
     } catch (const cv_bridge::Exception& e) 
     {
         ROS_ERROR("cv_bridge exception: %s", e.what());
@@ -121,20 +123,20 @@ int main(int argc, char* argv[])
 
     init_model();
     haar_cascade.load("/usr/local/src/opencv-3.1.0/data/haarcascades/haarcascade_frontalface_default.xml");
-    VideoCapture cap(0);
-    Mat frame;
-    while(1)
-    {
-       cap >> frame;
-       detect_faces(frame);
-    }
-
-    //ros::NodeHandle nh;
-    // ros::Subscriber sub = nh.subscribe("camera/rgb/image_raw", MY_ROS_QUEUE_SIZE, imgcb);
-    //ros::Subscriber sub = nh.subscribe("camera/rgb/image_color", MY_ROS_QUEUE_SIZE, imgage_rgb_cb);
-
-    //cv::namedWindow("foo");
-    //ros::spin();
+    //VideoCapture cap(0);
     //Mat frame;
+    //while(1)
+    //{
+       //cap >> frame;
+       //detect_faces(frame);
+    //}
+
+    ros::NodeHandle nh;
+     //ros::Subscriber sub = nh.subscribe("camera/rgb/image_raw", MY_ROS_QUEUE_SIZE, imgcb);
+    ros::Subscriber sub = nh.subscribe("camera/rgb/image_color", MY_ROS_QUEUE_SIZE, imgage_rgb_cb);
+
+    cv::namedWindow("foo");
+    ros::spin();
+    Mat frame;
     return 0;
 }
