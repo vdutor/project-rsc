@@ -1,60 +1,89 @@
-#include <pthread.h>
 #include <iostream>
 #include <string>
 
-#include <ros/ros.h>
 #include <std_msgs/String.h>
+#include <project_rsc/move.h>
+#include <project_rsc/rotate.h>
+
+#include "pilot.h"
 
 using namespace std;
 
-ros::Publisher pilotCommandMsg;
-ros::Subscriber pilotResponseMsg;
+double defaultWheelRadius = 0.09; // m
+double defaultSpeed = 3; // m/s
 
-void response_cb(const std_msgs::String::ConstPtr& msg)
+ros::Publisher serialCommandMsg;
+ros::Subscriber serialResponseMsg;
+ros::Publisher pilotResponseMsg;
+ros::Subscriber moveCommandMsg;
+ros::Subscriber rotateCommandMsg;
+
+Pilot pilot;
+
+Pilot::Pilot()
+{
+}
+
+Pilot::Pilot(ros::Publisher serialCommandMsg, int speed, int wheelRadius)
+{
+    this->serialPub = serialCommandMsg;
+    this->speed = speed;
+    this->wheelRadius = wheelRadius;
+    this->rotSpeed = speed * 60 / (wheelRadius * 2 * M_PI);
+}
+
+void serialResponseCB(const std_msgs::String::ConstPtr& msg)
 {
     cout << endl << "Response from robot: " << msg->data << endl;
 }
 
-void *cmdThread(void *arg)
+void moveCommandCB(const project_rsc::move::ConstPtr& msg)
 {
-    ROS_INFO("command thread running");
+    ROS_INFO("received move command");
 
-    while(true)
+    int d = msg->direction;
+    double l = msg->length;
+
+    if (d != 1 && d != -1)
     {
-        std_msgs::String msg;
-        msg.data = "en";
-        pilotCommandMsg.publish(msg);
-        msg.data = "1v-300";
-        pilotCommandMsg.publish(msg);
-        msg.data = "2v300";
-        pilotCommandMsg.publish(msg);
-
-        sleep(10);
-
-        msg.data = "1v0";
-        pilotCommandMsg.publish(msg);
-        msg.data = "2v0";
-        pilotCommandMsg.publish(msg);
+        ROS_DEBUG("ERR: invalid direction argument");
+        return;
     }
-    return NULL;
+    pilot.move(d, l);
+}
+
+void rotateCommandCB(const project_rsc::rotate::ConstPtr& msg)
+{
+    ROS_INFO("received rotate command");
+
+    int d = msg->direction;
+    double a = msg->degrees;
+
+    if (d != 1 && d != -1)
+    {
+        ROS_DEBUG("ERR: invalid direction argument");
+        return;
+    }
+    pilot.rotate(d, a);
 }
 
 int main(int argc, char* argv[])
 {
-    pthread_t cmdThrID;
+    // pthread_t cmdThrID;
 
     ros::init(argc, argv, "pilot_node");
     ROS_INFO("pilot starting");
 
     ros::NodeHandle nh;
-    pilotResponseMsg = nh.subscribe("uc0Response", 100, response_cb);
-    pilotCommandMsg = nh.advertise<std_msgs::String>("uc0Command",100);
 
-    int err = pthread_create(&cmdThrID, NULL, cmdThread, NULL);
-    if (err != 0) {
-        ROS_ERROR("unable to create command thread");
-        return 1;
-    }
+    serialResponseMsg = nh.subscribe(SERIAL_RSP, 100, serialResponseCB);
+    serialCommandMsg = nh.advertise<std_msgs::String>(SERIAL_CMD,100);
+
+    moveCommandMsg = nh.subscribe(MOVE_CMD, 100, moveCommandCB);
+    rotateCommandMsg = nh.subscribe(ROTATE_CMD, 100, rotateCommandCB);
+    pilotResponseMsg = nh.advertise<std_msgs::String>(PILOT_RSP,100);
+
+    pilot = Pilot(serialCommandMsg, defaultSpeed, defaultWheelRadius);
 
     ros::spin();
 

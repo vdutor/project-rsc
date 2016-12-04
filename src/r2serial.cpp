@@ -27,21 +27,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-//r2Serial.cpp
-
-// communicate via RS232 serial with a remote uController.
-// communicate with ROS using String type messages.
-// subscribe to command messages from ROS
-// publish command responses to ROS
-
-// program parameters - ucontroller# (0,1), serial port, baud rate
-
-//Thread main
-//  Subscribe to ROS String messages and send as commands to uController
-//Thread receive
-//  Wait for responses from uController and publish as a ROS messages
-
-
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include <sstream>
