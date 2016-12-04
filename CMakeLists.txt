@@ -8,11 +8,15 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   roscpp
   sensor_msgs
+  message_generation
 )
 
 find_package(
   OpenCV REQUIRED
 )
+
+## Use c++11
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -48,18 +52,17 @@ find_package(
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  move.msg
+  rotate.msg
+)
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  pilot.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -69,10 +72,11 @@ find_package(
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   sensor_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  sensor_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -104,9 +108,9 @@ find_package(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  #  INCLUDE_DIRS include
+#  INCLUDE_DIRS include
 #  LIBRARIES project_rsc
-#  CATKIN_DEPENDS cv_bridge roscpp sensor_msgs
+  CATKIN_DEPENDS cv_bridge roscpp sensor_msgs message_runtime
 #  DEPENDS system_lib
 )
 
@@ -136,7 +140,7 @@ include_directories(
 add_executable(face_detection_node src/face_detection.cpp)
 add_executable(laser_node src/laser.cpp)
 add_executable(r2serial_node src/r2serial.cpp)
-add_executable(pilot_node src/pilot.cpp)
+add_executable(pilot_node src/pilot.cpp src/movement.cpp src/odometry.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
