@@ -42,6 +42,8 @@
 #define DEFAULT_BAUDRATE 9600
 #define DEFAULT_SERIALPORT "/dev/ttyUSB0"
 
+#define MOCK_SERIAL
+
 //Global data
 FILE *fpSerial = NULL; //serial port file pointer
 int fdSerial = -1; // serial port file descriptor
@@ -131,7 +133,9 @@ FILE* serialInit(char* port, int baud)
 void ucCommandCallback(const std_msgs::String::ConstPtr& msg)
 {
     ROS_INFO("uc%dCommand: %s", ucIndex, msg->data.c_str());
+#ifndef MOCK_SERIAL
     fprintf(fpSerial, "%s\n", msg->data.c_str()); //appends newline
+#endif
 } //ucCommandCallback
 
 
@@ -205,6 +209,7 @@ int main(int argc, char **argv)
 
     ROS_INFO("connection initializing (%s) at %d baud", port, baud);
 
+#ifndef MOCK_SERIAL
     fpSerial = serialInit(port, baud);
     if (!fpSerial )
     {
@@ -213,6 +218,7 @@ int main(int argc, char **argv)
     }
 
     ROS_INFO("serial connection successful");
+#endif
 
     //Subscribe to ROS messages
     ucCommandMsg = rosNode.subscribe(topicSubscribe, 100, ucCommandCallback);
@@ -220,17 +226,21 @@ int main(int argc, char **argv)
     //Setup to publish ROS messages
     ucResponseMsg = rosNode.advertise<std_msgs::String>(topicPublish, 100);
 
+#ifndef MOCK_SERIAL
     //Create receive thread
     err = pthread_create(&rcvThrID, NULL, rcvThread, NULL);
     if (err != 0) {
         ROS_ERROR("unable to create receive thread");
         return 1;
     }
+#endif
 
     //Process ROS messages and send serial commands to uController
     ros::spin();
 
+#ifndef MOCK_SERIAL
     fclose(fpSerial);
+#endif
     ROS_INFO("r2serial stopping");
     return 0;
 }

@@ -9,7 +9,7 @@ class Pilot
 {
 public:
     Pilot();
-    Pilot(ros::Publisher serialCommandMsg, int speed, int wheelRadius);
+    Pilot(ros::Publisher serialCommandMsg, double speed, double wheelRadius);
 
     /*
      * Sends the "en" message to the robot
