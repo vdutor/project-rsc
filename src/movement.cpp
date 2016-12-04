@@ -47,6 +47,7 @@ void Pilot::move(int direction, double length)
     unsigned int sleepTime = length / speed * 1000000; // microseconds
     setLSpeed(direction * rotSpeed);
     setRSpeed(-direction * rotSpeed);
+    ROS_INFO("sleeping for %u ms", sleepTime);
     usleep(sleepTime);
     stopRobot();
 }

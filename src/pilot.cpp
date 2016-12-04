@@ -24,12 +24,13 @@ Pilot::Pilot()
 {
 }
 
-Pilot::Pilot(ros::Publisher serialCommandMsg, int speed, int wheelRadius)
+Pilot::Pilot(ros::Publisher serialCommandMsg, double speed, double wheelRadius)
 {
     this->serialPub = serialCommandMsg;
     this->speed = speed;
     this->wheelRadius = wheelRadius;
     this->rotSpeed = speed * 60 / (wheelRadius * 2 * M_PI);
+    ROS_DEBUG("rotational velocity of wheels set to %f", wheelRadius);
 }
 
 void serialResponseCB(const std_msgs::String::ConstPtr& msg)
