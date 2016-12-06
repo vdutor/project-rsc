@@ -68,7 +68,7 @@ void rotateCommandCB(const project_rsc::rotate::ConstPtr& msg)
     pilot->rotate(d, a);
 
     std_msgs::String arrival_msg;
-    msg.data = ROBOT_DONE;
+    arrival_msg.data = ROBOT_DONE;
     pilotResponseMsg.publish(arrival_msg);
 }
 
