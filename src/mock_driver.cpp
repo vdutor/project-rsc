@@ -14,7 +14,7 @@ void pilotCB(const std_msgs::String::ConstPtr& msg)
 {
     ROS_INFO("received response from pilot");
 
-    if (msg.data == ROBOT_DONE)
+    if (msg->data == ROBOT_DONE)
         running = 0;
     else
         running = 1;
@@ -30,24 +30,33 @@ int main(int argc, char* argv[])
     ros::Publisher mvPub = nh.advertise<project_rsc::move>(MOVE_CMD,100);
     ros::Publisher rotPub = nh.advertise<project_rsc::rotate>(ROTATE_CMD,100);
 
-    for (int i = 0; i < 10; i++)
-    {
-        project_rsc::move mv_msg;
-        mv_msg.direction = 1;
-        mv_msg.length = 10 + i;
+    project_rsc::move mv_msg;
+    mv_msg.direction = 1;
+    mv_msg.length = 2;
+    mvPub.publish(mv_msg);
 
-        project_rsc::rotate rot_msg;
-        rot_msg.direction = 1;
-        rot_msg.degrees = 3.14 + i;
+    // for (int i = 0; i < 4; i++)
+    // {
+    //     project_rsc::move mv_msg;
+    //     mv_msg.direction = 1;
+    //     mv_msg.length = 10 + i;
 
-        if (i%2 == 0)
-            mvPub.publish(mv_msg);
-        else
-            rotPub.publish(rot_msg);
+    //     project_rsc::rotate rot_msg;
+    //     rot_msg.direction = 1;
+    //     rot_msg.degrees = 3.14 + i;
 
-        ros::spinOnce();
-        sleep(2);
-    }
+    //     if (i%2 == 0)
+    //         mvPub.publish(mv_msg);
+    //     else
+    //         rotPub.publish(rot_msg);
+    //     running = 1;
+
+    //     ros::spinOnce();
+    //     while(running == 1)
+    //     {
+    //         sleep(2);
+    //     }
+    // }
 
     return 0;
 }

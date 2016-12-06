@@ -55,14 +55,7 @@ void Pilot::move(int direction, double length)
                      direction * length * sin(odometry.currentPose.theta),
                      0);
 
-    tf::Transform transform;
-    transform.setOrigin( tf::Vector3(odometry.currentPose.x,
-                                     odometry.currentPose.y,
-                                     0.0) );
-    tf::Quaternion q;
-    q.setRPY(0, 0, odometry.currentPose.theta);
-    transform.setRotation(q);
-    tfBroadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "odom"));
+    odometry.broadcastPose(tfBroadcaster);
 }
 
 void Pilot::rotate(int direction, double angle)
@@ -76,12 +69,5 @@ void Pilot::rotate(int direction, double angle)
 
     odometry.addPose(0, 0, direction * angle);
 
-    tf::Transform transform;
-    transform.setOrigin( tf::Vector3(odometry.currentPose.x,
-                                     odometry.currentPose.y,
-                                     0.0) );
-    tf::Quaternion q;
-    q.setRPY(0, 0, odometry.currentPose.theta);
-    transform.setRotation(q);
-    tfBroadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "odom"));
+    odometry.broadcastPose(tfBroadcaster);
 }
