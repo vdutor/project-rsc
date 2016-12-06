@@ -16,7 +16,7 @@ struct TimedPose
 {
     Pose pose;
     std::time_t arrival_time;
-}
+};
 
 class Odometry
 {
@@ -26,7 +26,7 @@ public:
     std::list<Pose> previousPoses;
 
     Odometry();
-    void addPose(double dX, double dY, double dTheta, std::time_t time);
+    void addPose(double dX, double dY, double dTheta);
     void broadcastPose(tf::TransformBroadcaster& tfBroadcaster);
 };
 
