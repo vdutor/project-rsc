@@ -8,4 +8,7 @@
 #define ROTATE_CMD "pilotRotateCommand"
 #define PILOT_RSP "pilotResponse"
 
+#define ROBOT_DONE "robotDone"
+#define ROBOT_BUSY "robotBusy"
+
 #endif

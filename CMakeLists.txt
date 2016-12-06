@@ -7,6 +7,7 @@ project(project_rsc)
 find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   roscpp
+  tf
   sensor_msgs
   message_generation
 )
@@ -110,7 +111,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES project_rsc
-  CATKIN_DEPENDS cv_bridge roscpp sensor_msgs message_runtime
+  CATKIN_DEPENDS cv_bridge roscpp tf sensor_msgs message_runtime
 #  DEPENDS system_lib
 )
 

@@ -18,7 +18,7 @@ ros::Publisher pilotResponseMsg;
 ros::Subscriber moveCommandMsg;
 ros::Subscriber rotateCommandMsg;
 
-Pilot pilot;
+Pilot* pilot;
 
 Pilot::Pilot()
 {
@@ -50,7 +50,7 @@ void moveCommandCB(const project_rsc::move::ConstPtr& msg)
         ROS_DEBUG("ERR: invalid direction argument");
         return;
     }
-    pilot.move(d, l);
+    pilot->move(d, l);
 }
 
 void rotateCommandCB(const project_rsc::rotate::ConstPtr& msg)
@@ -65,7 +65,11 @@ void rotateCommandCB(const project_rsc::rotate::ConstPtr& msg)
         ROS_DEBUG("ERR: invalid direction argument");
         return;
     }
-    pilot.rotate(d, a);
+    pilot->rotate(d, a);
+
+    std_msgs::String arrival_msg;
+    msg.data = ROBOT_DONE;
+    pilotResponseMsg.publish(arrival_msg);
 }
 
 int main(int argc, char* argv[])
@@ -84,11 +88,12 @@ int main(int argc, char* argv[])
     rotateCommandMsg = nh.subscribe(ROTATE_CMD, 100, rotateCommandCB);
     pilotResponseMsg = nh.advertise<std_msgs::String>(PILOT_RSP,100);
 
-    pilot = Pilot(serialCommandMsg, defaultSpeed, defaultWheelRadius);
+    pilot = new Pilot(serialCommandMsg, defaultSpeed, defaultWheelRadius);
 
     ros::spin();
 
     ROS_INFO("pilot stopping");
 
+    delete pilot;
     return 0;
 }

@@ -1,9 +1,11 @@
 #ifndef RSC_PILOT
 #define RSC_PILOT
 
+#include <ros/ros.h>
+#include <tf/transform_broadcaster.h>
+
 #include "global.h"
 #include "odometry.h"
-#include <ros/ros.h>
 
 class Pilot
 {
@@ -41,8 +43,10 @@ private:
     void setLSpeed(int rotSpeed);
     void setRSpeed(int rotSpeed);
 
-    Odometry odometry;
+    tf::TransformBroadcaster tfBroadcaster;
     ros::Publisher serialPub;
+
+    Odometry odometry;
     int speed; // speed of the robot in m/s
     int rotSpeed; // speed of the wheels in rotations/min
     int wheelRadius;

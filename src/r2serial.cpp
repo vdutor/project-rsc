@@ -42,7 +42,7 @@
 #define DEFAULT_BAUDRATE 9600
 #define DEFAULT_SERIALPORT "/dev/ttyUSB0"
 
-#define MOCK_SERIAL
+// #define MOCK_SERIAL
 
 //Global data
 FILE *fpSerial = NULL; //serial port file pointer
