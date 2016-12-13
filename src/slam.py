@@ -14,9 +14,10 @@ def print_map_meta_data(msg):
 
 def print_occupancy_grid(grid):
     print "Grid: "
-    print grid
+    # print grid
     print grid.info
-    print grid.data
+    print len(grid.data)
+    # print grid.data
 
 
 def init():
