@@ -20,10 +20,9 @@ def print_occupancy_grid(grid):
 
 
 def init():
-    rospy.init_node('slam node', anonymous=True)
-    rospy.Subscriber("MapMetaData", MapMetaData, print_map_meta_data)
-    rospy.Subscriber("Grid", OccupancyGrid, print_occupancy_grid)
-    rospy.spin()
+    rospy.init_node('slam_node', anonymous=True)
+    rospy.Subscriber("map_metadata", MapMetaData, print_map_meta_data)
+    rospy.Subscriber("map", OccupancyGrid, print_occupancy_grid)
 
 
 if __name__ == '__main__':
