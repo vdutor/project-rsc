@@ -10,7 +10,10 @@ class Pilot
 {
 public:
     Pilot();
-    Pilot(ros::Publisher serialCommandMsg, double speed, double wheelRadius);
+    Pilot(ros::Publisher serialCommandMsg,
+          double speed = 412,
+          double translateTime = 1000000,
+          double rotationTime = 10840000);
 
     /*
      * Sends the "en" message to the robot
@@ -38,6 +41,11 @@ public:
      */
     void stopRobot();
 
+    /*
+     * Broadcasts a tf message
+     */
+    void publishOdometry();
+
 private:
     void setLSpeed(int rotSpeed);
     void setRSpeed(int rotSpeed);
@@ -46,9 +54,10 @@ private:
     ros::Publisher serialPub;
 
     Odometry odometry;
-    int speed; // speed of the robot in m/s
-    int rotSpeed; // speed of the wheels in rotations/min
-    int wheelRadius;
+    double speed; // speed of the wheels of the robot
+    double rotationTime; // time to complete 1 rotation in microseconds
+    double translateTime; // time to drive 1 m in microseconds
+    double wheelRadius;
 };
 
 #endif

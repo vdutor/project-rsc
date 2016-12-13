@@ -57,6 +57,7 @@ add_message_files(
   FILES
   move.msg
   rotate.msg
+  stop.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -143,6 +144,7 @@ add_executable(laser_node src/laser.cpp)
 add_executable(r2serial_node src/r2serial.cpp)
 add_executable(pilot_node src/pilot.cpp src/movement.cpp src/odometry.cpp)
 add_executable(mockdriver_node src/mock_driver.cpp)
+add_executable(stopdriver_node src/stop_driver.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -154,6 +156,7 @@ target_link_libraries(laser_node ${catkin_LIBRARIES})
 target_link_libraries(r2serial_node ${catkin_LIBRARIES})
 target_link_libraries(pilot_node ${catkin_LIBRARIES})
 target_link_libraries(mockdriver_node ${catkin_LIBRARIES})
+target_link_libraries(stopdriver_node ${catkin_LIBRARIES})
 
 #############
 ## Install ##

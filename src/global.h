@@ -6,6 +6,7 @@
 
 #define MOVE_CMD "pilotMoveCommand"
 #define ROTATE_CMD "pilotRotateCommand"
+#define STOP_CMD "pilotStopCommand"
 #define PILOT_RSP "pilotResponse"
 
 #define ROBOT_DONE "robotDone"

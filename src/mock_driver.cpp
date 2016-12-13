@@ -32,31 +32,27 @@ int main(int argc, char* argv[])
 
     project_rsc::move mv_msg;
     mv_msg.direction = 1;
-    mv_msg.length = 2;
+    mv_msg.length = 10;
     mvPub.publish(mv_msg);
+    ros::spinOnce();
+    sleep (5);
 
-    // for (int i = 0; i < 4; i++)
-    // {
-    //     project_rsc::move mv_msg;
-    //     mv_msg.direction = 1;
-    //     mv_msg.length = 10 + i;
+    for (int i = 0; i < 1; i++)
+    {
+        // project_rsc::rotate rot_msg;
+        // rot_msg.direction = 1;
+        // rot_msg.degrees = 3.14159265;
+        // rotPub.publish(rot_msg);
+        // ros::spinOnce();
+        // sleep (8);
 
-    //     project_rsc::rotate rot_msg;
-    //     rot_msg.direction = 1;
-    //     rot_msg.degrees = 3.14 + i;
-
-    //     if (i%2 == 0)
-    //         mvPub.publish(mv_msg);
-    //     else
-    //         rotPub.publish(rot_msg);
-    //     running = 1;
-
-    //     ros::spinOnce();
-    //     while(running == 1)
-    //     {
-    //         sleep(2);
-    //     }
-    // }
+        project_rsc::move mv_msg;
+        mv_msg.direction = 1;
+        mv_msg.length = 40;
+        mvPub.publish(mv_msg);
+        ros::spinOnce();
+        sleep (5);
+    }
 
     return 0;
 }
