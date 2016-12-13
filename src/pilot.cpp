@@ -55,13 +55,26 @@ void twistCommandCB(const geometry_msgs::Twist::ConstPtr& msg)
     cout << msg->angular.z << endl;
     cout << msg->linear.x << endl;
 
-    int dx = msg->linear.x;
+    double dx = msg->linear.x;
     int direction = 1; // forward
     if (dx < 0)
     {
         direction = -1;
         dx = -dx;
     }
+
+    double angle = msg->angular.z;
+    int direction_rotation = 1; // right
+    if (angle < 0)
+    {
+        direction_rotation = -1;
+        angle = -angle;
+    }
+
+    pilot->rotate(direction_rotation, angle);
+    pilot->move(direction, dx);
+
+    ROS_INFO("done movement");
 }
 
 void moveCommandCB(const project_rsc::move::ConstPtr& msg)
@@ -137,7 +150,7 @@ int main(int argc, char* argv[])
     serialResponseMsg = nh.subscribe(SERIAL_RSP, 100, serialResponseCB);
     serialCommandMsg = nh.advertise<std_msgs::String>(SERIAL_CMD,100);
 
-    twistCommandMsg = nh.subscribe(TWIST_CMD, 100, twistCommandCB);
+    twistCommandMsg = nh.subscribe(TWIST_CMD, 1, twistCommandCB);
     //moveCommandMsg = nh.subscribe(MOVE_CMD, 100, moveCommandCB);
     //rotateCommandMsg = nh.subscribe(ROTATE_CMD, 100, rotateCommandCB);
     stopCommandMsg = nh.subscribe(STOP_CMD, 100, stopCommandCB);

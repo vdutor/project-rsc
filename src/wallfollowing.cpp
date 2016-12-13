@@ -81,10 +81,8 @@ void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 #define P 10    // Proportional constant for controller
 #define D 5     // Derivative constant for controller
 #define ANGLE_COEF 1    // Proportional constant for angle controller
-#define DIRECTION 1 // 1 for wall on the left side of the robot (-1 for the right side).
-// #define PUBLISHER_TOPIC "/syros/base_cmd_vel"
+#define DIRECTION -1 // 1 for wall on the left side of the robot (-1 for the right side).
 #define PUBLISHER_TOPIC "/cmd_vel"
-// #define SUBSCRIBER_TOPIC "/syros/laser_laser"
 #define SUBSCRIBER_TOPIC "/scan"
 
 int main(int argc, char **argv)
