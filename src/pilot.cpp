@@ -128,11 +128,11 @@ int main(int argc, char* argv[])
 
     pilot = new Pilot(serialCommandMsg);
 
-    // int err = pthread_create(&odomThrID, NULL, odomThread, NULL);
-    // if (err != 0) {
-    //     ROS_ERROR("unable to create command thread");
-    //     return 1;
-    // }
+    int err = pthread_create(&odomThrID, NULL, odomThread, NULL);
+    if (err != 0) {
+        ROS_ERROR("unable to create command thread");
+        return 1;
+    }
 
     ros::spin();
 

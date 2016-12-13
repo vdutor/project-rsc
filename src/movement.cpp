@@ -53,8 +53,8 @@ void Pilot::move(int direction, double length)
     double dY = direction * length * sin(odometry.currentPose.theta);
     odometry.addNextPose(dX, dY, 0, time(0) + driveTime / 1000000);
 
-    setLSpeed(-direction * speed);
-    setRSpeed(direction * speed);
+    setLSpeed(direction * speed);
+    setRSpeed(-direction * speed);
 
     ROS_INFO("sleeping for %u microsec", driveTime);
     usleep(driveTime); // sleep in microseconds

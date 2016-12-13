@@ -2,5 +2,5 @@
   <node name="tf_test" pkg="project_rsc" type="tf_test.py" output="screen" />
   <node name="slam" pkg="project_rsc" type="slam.py" output="screen" />
   <node name="urg_node" pkg="urg_node" type="urg_node" />
-  <node pkg="tf" type="static_transform_publisher" name="scan_frame_broadcaster" args="0 0 0 0 0 0 1 base_link laser_link 100" />
+  <node pkg="tf" type="static_transform_publisher" name="scan_frame_broadcaster" args="0 0 0 0 0 0 1 base_link laser 100" />
 </launch>

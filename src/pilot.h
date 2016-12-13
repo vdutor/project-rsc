@@ -12,8 +12,8 @@ public:
     Pilot();
     Pilot(ros::Publisher serialCommandMsg,
           double speed = 412,
-          double translateTime = 1000000,
-          double rotationTime = 10840000);
+          double translateTime = 9570000,
+          double rotationTime = 10370000);
 
     /*
      * Sends the "en" message to the robot

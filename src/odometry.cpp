@@ -36,7 +36,8 @@ void Odometry::broadcastPose(tf::TransformBroadcaster& tfBroadcaster)
         return;
     }
 
-    double t = (time(0) - currentPose.arrival_time) / (nextPose.arrival_time - currentPose.arrival_time);
+    double dt = (nextPose.arrival_time - currentPose.arrival_time);
+    double t = dt == 0 ? 0 : (time(0) - currentPose.arrival_time) / dt;
     double x = currentPose.x + (nextPose.x - currentPose.x) * t;
     double y = currentPose.y + (nextPose.y - currentPose.y) * t;
     double theta = currentPose.theta + (nextPose.theta - currentPose.theta) * t;
