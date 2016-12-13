@@ -6,13 +6,15 @@
 #include <project_rsc/move.h>
 #include <project_rsc/rotate.h>
 #include <project_rsc/stop.h>
+#include "geometry_msgs/Twist.h"
 
 #include "pilot.h"
 
 using namespace std;
 
-double defaultSpeed = 412; // m/s
+double defaultSpeed = 412; // 10 cm/s
 
+ros::Subscriber twistCommandMsg;
 ros::Publisher serialCommandMsg;
 ros::Subscriber serialResponseMsg;
 ros::Publisher pilotResponseMsg;
@@ -46,6 +48,20 @@ void Pilot::publishOdometry()
 void serialResponseCB(const std_msgs::String::ConstPtr& msg)
 {
     ROS_INFO("response from robot %s", msg->data.c_str());
+}
+
+void twistCommandCB(const geometry_msgs::Twist::ConstPtr& msg)
+{
+    cout << msg->angular.z << endl;
+    cout << msg->linear.x << endl;
+
+    int dx = msg->linear.x;
+    int direction = 1; // forward
+    if (dx < 0)
+    {
+        direction = -1;
+        dx = -dx;
+    }
 }
 
 void moveCommandCB(const project_rsc::move::ConstPtr& msg)
@@ -121,8 +137,9 @@ int main(int argc, char* argv[])
     serialResponseMsg = nh.subscribe(SERIAL_RSP, 100, serialResponseCB);
     serialCommandMsg = nh.advertise<std_msgs::String>(SERIAL_CMD,100);
 
-    moveCommandMsg = nh.subscribe(MOVE_CMD, 100, moveCommandCB);
-    rotateCommandMsg = nh.subscribe(ROTATE_CMD, 100, rotateCommandCB);
+    twistCommandMsg = nh.subscribe(TWIST_CMD, 100, twistCommandCB);
+    //moveCommandMsg = nh.subscribe(MOVE_CMD, 100, moveCommandCB);
+    //rotateCommandMsg = nh.subscribe(ROTATE_CMD, 100, rotateCommandCB);
     stopCommandMsg = nh.subscribe(STOP_CMD, 100, stopCommandCB);
     pilotResponseMsg = nh.advertise<std_msgs::String>(PILOT_RSP,100);
 
