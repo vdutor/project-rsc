@@ -1,6 +1,7 @@
 #include <math.h>
 #include <unistd.h>
 #include <string>
+#include <ctime>
 
 #include <std_msgs/String.h>
 
@@ -16,19 +17,21 @@ void Pilot::enableRobot()
     serialPub.publish(msg);
 }
 
-void Pilot::setLSpeed(int rotSpeed)
+void Pilot::setLSpeed(int rSpeed)
 {
     std_msgs::String msg;
 
-    msg.data = "2v" + to_string(rotSpeed);
+    msg.data = "2v" + to_string(rSpeed);
+    ROS_INFO("left wheel set to %s", msg.data.c_str());
     serialPub.publish(msg);
 }
 
-void Pilot::setRSpeed(int rotSpeed)
+void Pilot::setRSpeed(int rSpeed)
 {
     std_msgs::String msg;
 
-    msg.data = "1v" + to_string(rotSpeed);
+    msg.data = "1v" + to_string(rSpeed);
+    ROS_INFO("rigth wheel set to %s", msg.data.c_str());
     serialPub.publish(msg);
 }
 
@@ -44,30 +47,36 @@ void Pilot::stopRobot()
 
 void Pilot::move(int direction, double length)
 {
-    unsigned int sleepTime = length / speed * 1000000; // microseconds
-    setLSpeed(direction * rotSpeed);
-    setRSpeed(-direction * rotSpeed);
-    ROS_INFO("sleeping for %u ms", sleepTime);
-    usleep(sleepTime);
+    unsigned int driveTime = length * translateTime;
+
+    double dX = direction * length * cos(odometry.currentPose.theta);
+    double dY = direction * length * sin(odometry.currentPose.theta);
+    odometry.addNextPose(dX, dY, 0, time(0) + driveTime / 1000000);
+
+    setLSpeed(-direction * speed);
+    setRSpeed(direction * speed);
+
+    ROS_INFO("sleeping for %u microsec", driveTime);
+    usleep(driveTime); // sleep in microseconds
     stopRobot();
 
-    odometry.addPose(direction * length * cos(odometry.currentPose.theta),
-                     direction * length * sin(odometry.currentPose.theta),
-                     0);
-
-    odometry.broadcastPose(tfBroadcaster);
+    odometry.arrivedAtPose();
+    // odometry.broadcastPose(tfBroadcaster);
 }
 
 void Pilot::rotate(int direction, double angle)
 {
-    double length = angle * wheelRadius;
-    unsigned int sleepTime = length / speed * 1000000; // microseconds
-    setLSpeed(direction * rotSpeed);
-    setRSpeed(direction * rotSpeed);
-    usleep(sleepTime);
+    unsigned int rotateTime = angle / (2*M_PI) * rotationTime;
+
+    odometry.addNextPose(0, 0, direction * angle, time(0) + rotateTime / 1000000);
+
+    setLSpeed(direction * speed);
+    setRSpeed(direction * speed);
+
+    ROS_INFO("sleeping for %u microsec", rotateTime);
+    usleep(rotateTime); // sleep in microseconds
     stopRobot();
 
-    odometry.addPose(0, 0, direction * angle);
-
-    odometry.broadcastPose(tfBroadcaster);
+    odometry.arrivedAtPose();
+    // odometry.broadcastPose(tfBroadcaster);
 }

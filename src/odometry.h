@@ -5,28 +5,24 @@
 #include <ctime>
 #include <tf/transform_broadcaster.h>
 
-struct Pose
+struct TimedPose
 {
     double x;
     double y;
     double theta;
-};
-
-struct TimedPose
-{
-    Pose pose;
     std::time_t arrival_time;
-}
+};
 
 class Odometry
 {
 public:
-    Pose currentPose;
-    Pose nextPose;
-    std::list<Pose> previousPoses;
+    TimedPose currentPose;
+    TimedPose nextPose;
+    std::list<TimedPose> previousPoses;
 
     Odometry();
-    void addPose(double dX, double dY, double dTheta, std::time_t time);
+    void addNextPose(double dX, double dY, double dTheta, std::time_t time);
+    void arrivedAtPose();
     void broadcastPose(tf::TransformBroadcaster& tfBroadcaster);
 };
 
