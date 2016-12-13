@@ -139,6 +139,7 @@ include_directories(
 # add_dependencies(project_rsc ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
+add_executable(wallfollowing src/wallfollowing.cpp)
 add_executable(face_detection_node src/face_detection.cpp)
 add_executable(laser_node src/laser.cpp)
 add_executable(r2serial_node src/r2serial.cpp)
@@ -151,6 +152,7 @@ add_executable(stopdriver_node src/stop_driver.cpp)
 # add_dependencies(project_rsc_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
+target_link_libraries(wallfollowing ${catkin_LIBRARIES})
 target_link_libraries(face_detection_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 target_link_libraries(laser_node ${catkin_LIBRARIES})
 target_link_libraries(r2serial_node ${catkin_LIBRARIES})
