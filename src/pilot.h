@@ -29,6 +29,16 @@ public:
     void move(int direction, double length);
 
     /*
+     * Sets linear velocity
+     * direction: 1 => forward
+     *           -1 => backward
+     */
+    void setLinearVelocity(int direction, float vel)
+    {
+
+    }
+
+    /*
      * Rotates the robot
      * angle: the angle the robot should rotate, in radians
      * direction: 1 => positive rotation (to the right)

@@ -76,7 +76,7 @@ void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 
 #define SUBSCRIBER_BUFFER_SIZE 1  // Size of buffer for subscriber.
 #define PUBLISHER_BUFFER_SIZE 1000  // Size of buffer for publisher.
-#define WALL_DISTANCE 0.13
+#define WALL_DISTANCE 0.7
 #define MAX_SPEED 0.1
 #define P 10    // Proportional constant for controller
 #define D 5     // Derivative constant for controller

@@ -71,7 +71,7 @@ void twistCommandCB(const geometry_msgs::Twist::ConstPtr& msg)
         angle = -angle;
     }
 
-    pilot->rotate(direction_rotation, angle);
+    //pilot->rotate(direction_rotation, angle);
     pilot->move(direction, dx);
 
     ROS_INFO("done movement");
