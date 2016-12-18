@@ -1,12 +1,7 @@
-#include <pthread.h>
 #include <iostream>
 #include <string>
 
-#include <std_msgs/String.h>
-#include <project_rsc/move.h>
-#include <project_rsc/rotate.h>
 #include <project_rsc/stop.h>
-#include "geometry_msgs/Twist.h"
 
 #include "pilot.h"
 
@@ -14,105 +9,103 @@ using namespace std;
 
 double defaultSpeed = 412; // 10 cm/s
 
-ros::Subscriber twistCommandMsg;
-ros::Publisher serialCommandMsg;
-ros::Subscriber serialResponseMsg;
-ros::Publisher pilotResponseMsg;
-ros::Subscriber moveCommandMsg;
-ros::Subscriber rotateCommandMsg;
-ros::Subscriber stopCommandMsg;
-
 Pilot* pilot;
 
-Pilot::Pilot()
-{
-}
+ros::Publisher rWheelEncoder;
+ros::Publisher lWheelEncoder;
+ros::Subscriber serialRWheelEncoder;
+ros::Subscriber serialLWheelEncoder;
+ros::Subscriber rWheelTarget;
+ros::Subscriber lWheelTarget;
 
-Pilot::Pilot(ros::Publisher serialCommandMsg,
-             double speed,
+ros::Publisher serialPub;
+ros::Subscriber serialSub;
+
+ros::Subscriber stopCommandSub;
+
+Pilot::Pilot(double speed,
              double translateTime,
              double rotationTime)
 {
-    this->serialPub = serialCommandMsg;
     this->speed = speed;
     this->translateTime = translateTime;
     this->rotationTime = rotationTime;
     ROS_INFO("rotational velocity of wheels set to %f", speed);
 }
 
-void Pilot::publishOdometry()
+void Pilot::enableRobot()
 {
-    odometry.broadcastPose(tfBroadcaster);
+    std_msgs::String msg;
+
+    msg.data = "en";
+    serialPub.publish(msg);
 }
 
-void serialResponseCB(const std_msgs::String::ConstPtr& msg)
+void Pilot::setLSpeed(int rSpeed)
+{
+    std_msgs::String msg;
+
+    msg.data = "2v" + to_string(rSpeed);
+    ROS_INFO("left wheel set to %s", msg.data.c_str());
+    serialPub.publish(msg);
+}
+
+void Pilot::setRSpeed(int rSpeed)
+{
+    std_msgs::String msg;
+
+    msg.data = "1v" + to_string(rSpeed);
+    ROS_INFO("rigth wheel set to %s", msg.data.c_str());
+    serialPub.publish(msg);
+}
+
+void Pilot::stopRobot()
+{
+    std_msgs::String msg;
+
+    msg.data = "1v0";
+    serialPub.publish(msg);
+    msg.data = "2v0";
+    serialPub.publish(msg);
+}
+
+void rWheelTargetCB(const std_msgs::Float32::ConstPtr& msg)
+{
+    ROS_INFO("received target value for right wheel");
+
+    //TODO: speed to voltage
+    int voltage = msg->data;
+    pilot->setRSpeed(voltage);
+}
+
+void lWheelTargetCB(const std_msgs::Float32::ConstPtr& msg)
+{
+    ROS_INFO("received target value for left wheel");
+
+    //TODO: speed to voltage
+    int voltage = msg->data;
+    pilot->setLSpeed(voltage);
+}
+
+void serialRWheelEncoderCB(const std_msgs::Int16::ConstPtr& msg)
+{
+    ROS_INFO("received right wheel encoder value");
+
+    std_msgs::Int16 newMsg = *msg;
+    rWheelEncoder.publish(newMsg);
+}
+
+void serialLWheelEncoderCB(const std_msgs::Int16::ConstPtr& msg)
+{
+    ROS_INFO("received left wheel encoder value");
+
+    std_msgs::Int16 newMsg = *msg;
+    lWheelEncoder.publish(newMsg);
+}
+
+void serialSubCB(const std_msgs::String::ConstPtr& msg)
 {
     ROS_INFO("response from robot %s", msg->data.c_str());
-}
-
-void twistCommandCB(const geometry_msgs::Twist::ConstPtr& msg)
-{
-    cout << msg->angular.z << endl;
-    cout << msg->linear.x << endl;
-
-    double dx = msg->linear.x;
-    int direction = 1; // forward
-    if (dx < 0)
-    {
-        direction = -1;
-        dx = -dx;
-    }
-
-    double angle = msg->angular.z;
-    int direction_rotation = 1; // right
-    if (angle < 0)
-    {
-        direction_rotation = -1;
-        angle = -angle;
-    }
-
-    //pilot->rotate(direction_rotation, angle);
-    pilot->move(direction, dx);
-
-    ROS_INFO("done movement");
-}
-
-void moveCommandCB(const project_rsc::move::ConstPtr& msg)
-{
-    ROS_INFO("received move command");
-
-    int d = msg->direction;
-    double l = msg->length;
-
-    if (d != 1 && d != -1)
-    {
-        ROS_WARN("ERR: invalid direction argument");
-        return;
-    }
-    pilot->move(d, l);
-
-    std_msgs::String arrival_msg;
-    arrival_msg.data = ROBOT_DONE;
-    pilotResponseMsg.publish(arrival_msg);
-}
-
-void rotateCommandCB(const project_rsc::rotate::ConstPtr& msg)
-{
-    ROS_INFO("received rotate command");
-
-    int d = msg->direction;
-    double a = msg->degrees;
-
-    if (d != 1 && d != -1)
-    {
-        ROS_WARN("ERR: invalid direction argument");
-        return;
-    }
-    pilot->rotate(d, a);
-
-    std_msgs::String arrival_msg;
-    arrival_msg.data = ROBOT_DONE;
-    pilotResponseMsg.publish(arrival_msg);
 }
 
 void stopCommandCB(const project_rsc::stop::ConstPtr& msg)
@@ -120,49 +113,26 @@ void stopCommandCB(const project_rsc::stop::ConstPtr& msg)
     ROS_INFO("received stop command");
 
     pilot->stopRobot();
-
-    std_msgs::String arrival_msg;
-    arrival_msg.data = ROBOT_DONE;
-    pilotResponseMsg.publish(arrival_msg);
-}
-
-void *odomThread(void *arg)
-{
-    ROS_INFO("Odometry thread running");
-
-    while(true)
-    {
-        pilot->publishOdometry();
-        sleep(1);
-    }
-    return NULL;
 }
 
 int main(int argc, char* argv[])
 {
-    pthread_t odomThrID;
-
     ros::init(argc, argv, "pilot_node");
     ROS_INFO("pilot starting");
 
     ros::NodeHandle nh;
 
-    serialResponseMsg = nh.subscribe(SERIAL_RSP, 100, serialResponseCB);
-    serialCommandMsg = nh.advertise<std_msgs::String>(SERIAL_CMD,100);
+    rWheelEncoder = nh.advertise<std_msgs::Int16>(R_WHEEL_ENCODER, 100);
+    lWheelEncoder = nh.advertise<std_msgs::Int16>(L_WHEEL_ENCODER, 100);
+    serialRWheelEncoder = nh.subscribe(SERIAL_R_WHEEL_ENCODER_VALUE, 100, serialRWheelEncoderCB);
+    serialLWheelEncoder = nh.subscribe(SERIAL_L_WHEEL_ENCODER_VALUE, 100, serialLWheelEncoderCB);
+    rWheelTarget = nh.subscribe(R_WHEEL_VEL, 100, rWheelTargetCB);
+    lWheelTarget = nh.subscribe(L_WHEEL_VEL, 100, lWheelTargetCB);
+    serialPub = nh.advertise<std_msgs::String>(SERIAL_CMD,100);
+    serialSub = nh.subscribe(SERIAL_RSP, 100, serialSubCB);
+    stopCommandSub = nh.subscribe(STOP_CMD, 100, stopCommandCB);
 
-    twistCommandMsg = nh.subscribe(TWIST_CMD, 1, twistCommandCB);
-    //moveCommandMsg = nh.subscribe(MOVE_CMD, 100, moveCommandCB);
-    //rotateCommandMsg = nh.subscribe(ROTATE_CMD, 100, rotateCommandCB);
-    stopCommandMsg = nh.subscribe(STOP_CMD, 100, stopCommandCB);
-    pilotResponseMsg = nh.advertise<std_msgs::String>(PILOT_RSP,100);
-
-    pilot = new Pilot(serialCommandMsg);
-
-    int err = pthread_create(&odomThrID, NULL, odomThread, NULL);
-    if (err != 0) {
-        ROS_ERROR("unable to create command thread");
-        return 1;
-    }
+    pilot = new Pilot();
 
     ros::spin();
 

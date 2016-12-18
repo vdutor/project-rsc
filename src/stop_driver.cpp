@@ -12,11 +12,7 @@ int running;
 void pilotCB(const std_msgs::String::ConstPtr& msg)
 {
     ROS_INFO("received response from pilot");
-
-    if (msg->data == ROBOT_DONE)
-        running = 0;
-    else
-        running = 1;
+    running = 0;
 }
 
 int main(int argc, char* argv[])

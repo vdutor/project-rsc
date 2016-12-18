@@ -26,9 +26,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-#include "ros/ros.h"
-#include "std_msgs/String.h"
 #include <sstream>
 #include <pthread.h>
 #include <sys/types.h>
@@ -38,18 +35,29 @@
 #include <termios.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+
+#include <ros/ros.h>
+#include <std_msgs/String.h>
+#include <std_msgs/Int16.h>
+
+#include "global.h"
 
 #define DEFAULT_BAUDRATE 9600
 #define DEFAULT_SERIALPORT "/dev/ttyUSB0"
 
-//#define MOCK_SERIAL
+// #define MOCK_SERIAL
 
 //Global data
 FILE *fpSerial = NULL; //serial port file pointer
 int fdSerial = -1; // serial port file descriptor
 ros::Publisher ucResponseMsg;
 ros::Subscriber ucCommandMsg;
+ros::Publisher rWheelEncoderMsg;
+ros::Publisher lWheelEncoderMsg;
 int ucIndex; //ucontroller index number
+
+static pthread_mutex_t printf_mutex;
 
 
 //Initialize serial port, return file descriptor
@@ -134,10 +142,72 @@ void ucCommandCallback(const std_msgs::String::ConstPtr& msg)
 {
     ROS_INFO("uc%dCommand: %s", ucIndex, msg->data.c_str());
 #ifndef MOCK_SERIAL
+    pthread_mutex_lock(&printf_mutex);
     fprintf(fpSerial, "%s\n", msg->data.c_str()); //appends newline
+    pthread_mutex_unlock(&printf_mutex);
+    ROS_INFO("mutex unlocked");
 #endif
 } //ucCommandCallback
 
+
+//Request encoder values from robot
+void *encThread(void *arg)
+{
+    int rcvBufSize = 200;
+    char ucResponse[rcvBufSize]; //response string from uController
+    char *bufPos;
+    std_msgs::String sMsg;
+    std_msgs::Int16 iMsg;
+
+    ROS_INFO("encThread: encoder thread running");
+
+    while (ros::ok()) {
+        pthread_mutex_lock(&printf_mutex);
+        fprintf(fpSerial, "%s\n", "1 POS");
+        pthread_mutex_unlock(&printf_mutex);
+
+        usleep(100000);
+
+        bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
+        if (bufPos != NULL) {
+            // ROS_INFO("uc%dResponse: %s", ucIndex, ucResponse);
+            int iVal = atoi(ucResponse);
+            if (iVal != 0)
+            {
+                iMsg.data = iVal;
+                rWheelEncoderMsg.publish(iMsg);
+                // if (iVal < 0)
+                //     rWheelEncoderMsg.publish(iMsg);
+                // else
+                //     ROS_DEBUG("wrong value from encoder!");
+            }
+        }
+
+        pthread_mutex_lock(&printf_mutex);
+        fprintf(fpSerial, "%s\n", "2 POS");
+        pthread_mutex_unlock(&printf_mutex);
+
+        usleep(100000);
+
+        bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
+        if (bufPos != NULL) {
+            // ROS_INFO("uc%dResponse: %s", ucIndex, ucResponse);
+            int iVal = atoi(ucResponse);
+            if (iVal != 0)
+            {
+                iMsg.data = iVal;
+                lWheelEncoderMsg.publish(iMsg);
+                // if (iVal > 0)
+                //     lWheelEncoderMsg.publish(iMsg);
+                // else
+                //     ROS_DEBUG("wrong value from encoder!");
+            }
+        }
+
+        usleep(10000);
+    }
+    return NULL;
+}
 
 //Receive command responses from robot uController
 //and publish as a ROS message
@@ -146,21 +216,27 @@ void *rcvThread(void *arg)
     int rcvBufSize = 200;
     char ucResponse[rcvBufSize]; //response string from uController
     char *bufPos;
-    std_msgs::String msg;
-    std::stringstream ss;
+    std_msgs::String sMsg;
+    std_msgs::Int16 iMsg;
 
     ROS_INFO("rcvThread: receive thread running");
 
     while (ros::ok()) {
       bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
       if (bufPos != NULL) {
-        ROS_DEBUG("uc%dResponse: %s", ucIndex, ucResponse);
-        msg.data = ucResponse;
-        ucResponseMsg.publish(msg);
+        ROS_INFO("uc%dResponse: %s", ucIndex, ucResponse);
+        // sMsg.data = ucResponse;
+        // ucResponseMsg.publish(sMsg);
+      }
+      bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
+      if (bufPos != NULL) {
+        ROS_INFO("uc%dResponse: %s", ucIndex, ucResponse);
+        // sMsg.data = ucResponse;
+        // ucResponseMsg.publish(sMsg);
       }
     }
     return NULL;
-} //rcvThread
+}
 
 
 int main(int argc, char **argv)
@@ -172,7 +248,10 @@ int main(int argc, char **argv)
     char topicPublish[20];
 
     pthread_t rcvThrID;   //receive thread ID
+    pthread_t encThrID;   //encoder thread ID
     int err;
+
+    pthread_mutex_init(&printf_mutex, NULL);
 
     //Initialize ROS
     ros::init(argc, argv, "r2serial");
@@ -221,16 +300,25 @@ int main(int argc, char **argv)
 #endif
 
     //Subscribe to ROS messages
-    ucCommandMsg = rosNode.subscribe(topicSubscribe, 100, ucCommandCallback);
+    ucCommandMsg = rosNode.subscribe(SERIAL_CMD, 100, ucCommandCallback);
 
     //Setup to publish ROS messages
-    ucResponseMsg = rosNode.advertise<std_msgs::String>(topicPublish, 100);
+    ucResponseMsg = rosNode.advertise<std_msgs::String>(SERIAL_RSP, 100);
+    rWheelEncoderMsg = rosNode.advertise<std_msgs::Int16>(SERIAL_R_WHEEL_ENCODER_VALUE, 100);
+    lWheelEncoderMsg = rosNode.advertise<std_msgs::Int16>(SERIAL_L_WHEEL_ENCODER_VALUE, 100);
 
 #ifndef MOCK_SERIAL
     //Create receive thread
-    err = pthread_create(&rcvThrID, NULL, rcvThread, NULL);
+    // err = pthread_create(&rcvThrID, NULL, rcvThread, NULL);
+    // if (err != 0) {
+    //     ROS_ERROR("unable to create receive thread");
+    //     return 1;
+    // }
+
+    //create encoder thread
+    err = pthread_create(&encThrID, NULL, encThread, NULL);
     if (err != 0) {
-        ROS_ERROR("unable to create receive thread");
+        ROS_ERROR("unable to create encoder thread");
         return 1;
     }
 #endif
