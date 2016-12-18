@@ -27,15 +27,10 @@ void moveRobot()
 {
     std_msgs::String msg;
 
-    msg.data = "1 POS";
+    msg.data = "1v-200";
     serialPub.publish(msg);
-    msg.data = "2 POS";
+    msg.data = "2v200";
     serialPub.publish(msg);
-
-    // msg.data = "1v-200";
-    // serialPub.publish(msg);
-    // msg.data = "2v200";
-    // serialPub.publish(msg);
 }
 
 void stopRobot()
@@ -72,14 +67,15 @@ int main(int argc, char* argv[])
     serialPub = nh.advertise<std_msgs::String>(SERIAL_CMD,100);
     serialSub = nh.subscribe(SERIAL_RSP, 100, serialSubCB);
     serialRWheelEncoder = nh.subscribe(SERIAL_R_WHEEL_ENCODER_VALUE, 100, serialRWheelEncoderCB);
-    serialLWheelEncoder = nh.subscribe(SERIAL_L_WHEEL_ENCODER_VALUE, 100, serialLWheelEncoderCB);
+    // serialLWheelEncoder = nh.subscribe(SERIAL_L_WHEEL_ENCODER_VALUE, 100, serialLWheelEncoderCB);
 
     enableRobot();
-    std::cin.get();
+    ros::spinOnce();
+    usleep(1000000);
     moveRobot();
-    usleep(4000000);
     std::cin.get();
     stopRobot();
+    ros::spinOnce();
 
     usleep(1000000);
     return 0;

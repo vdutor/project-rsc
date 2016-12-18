@@ -166,41 +166,45 @@ void *encThread(void *arg)
         fprintf(fpSerial, "%s\n", "1 POS");
         pthread_mutex_unlock(&printf_mutex);
 
-        usleep(1000);
+        usleep(100000);
 
-        // bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
-        // if (bufPos != NULL) {
-        //     ROS_DEBUG("uc%dResponse: %s", ucIndex, ucResponse);
-        //     int iVal = atoi(ucResponse);
-        //     if (iVal != 0)
-        //     {
-        //         iMsg.data = iVal;
-        //         if (iVal < 0)
-        //             rWheelEncoderMsg.publish(iMsg);
-        //         else
-        //             ROS_DEBUG("wrong value from encoder!");
-        //     }
-        // }
+        bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
+        if (bufPos != NULL) {
+            // ROS_INFO("uc%dResponse: %s", ucIndex, ucResponse);
+            int iVal = atoi(ucResponse);
+            if (iVal != 0)
+            {
+                iMsg.data = iVal;
+                rWheelEncoderMsg.publish(iMsg);
+                // if (iVal < 0)
+                //     rWheelEncoderMsg.publish(iMsg);
+                // else
+                //     ROS_DEBUG("wrong value from encoder!");
+            }
+        }
 
         pthread_mutex_lock(&printf_mutex);
         fprintf(fpSerial, "%s\n", "2 POS");
         pthread_mutex_unlock(&printf_mutex);
 
-        usleep(1000);
+        usleep(100000);
 
-        // bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
-        // if (bufPos != NULL) {
-        //     ROS_DEBUG("uc%dResponse: %s", ucIndex, ucResponse);
-        //     int iVal = atoi(ucResponse);
-        //     if (iVal != 0)
-        //     {
-        //         iMsg.data = iVal;
-        //         if (iVal > 0)
-        //             lWheelEncoderMsg.publish(iMsg);
-        //         else
-        //             ROS_DEBUG("wrong value from encoder!");
-        //     }
-        // }
+        bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
+        if (bufPos != NULL) {
+            // ROS_INFO("uc%dResponse: %s", ucIndex, ucResponse);
+            int iVal = atoi(ucResponse);
+            if (iVal != 0)
+            {
+                iMsg.data = iVal;
+                lWheelEncoderMsg.publish(iMsg);
+                // if (iVal > 0)
+                //     lWheelEncoderMsg.publish(iMsg);
+                // else
+                //     ROS_DEBUG("wrong value from encoder!");
+            }
+        }
+
+        usleep(10000);
     }
     return NULL;
 }
@@ -220,7 +224,13 @@ void *rcvThread(void *arg)
     while (ros::ok()) {
       bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
       if (bufPos != NULL) {
-        ROS_DEBUG("uc%dResponse: %s", ucIndex, ucResponse);
+        ROS_INFO("uc%dResponse: %s", ucIndex, ucResponse);
+        // sMsg.data = ucResponse;
+        // ucResponseMsg.publish(sMsg);
+      }
+      bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
+      if (bufPos != NULL) {
+        ROS_INFO("uc%dResponse: %s", ucIndex, ucResponse);
         // sMsg.data = ucResponse;
         // ucResponseMsg.publish(sMsg);
       }
@@ -299,18 +309,18 @@ int main(int argc, char **argv)
 
 #ifndef MOCK_SERIAL
     //Create receive thread
-    err = pthread_create(&rcvThrID, NULL, rcvThread, NULL);
-    if (err != 0) {
-        ROS_ERROR("unable to create receive thread");
-        return 1;
-    }
-
-    //Create encoder thread
-    // err = pthread_create(&encThrID, NULL, encThread, NULL);
+    // err = pthread_create(&rcvThrID, NULL, rcvThread, NULL);
     // if (err != 0) {
-    //     ROS_ERROR("unable to create encoder thread");
+    //     ROS_ERROR("unable to create receive thread");
     //     return 1;
     // }
+
+    //create encoder thread
+    err = pthread_create(&encThrID, NULL, encThread, NULL);
+    if (err != 0) {
+        ROS_ERROR("unable to create encoder thread");
+        return 1;
+    }
 #endif
 
     //Process ROS messages and send serial commands to uController
