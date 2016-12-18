@@ -1,25 +1,66 @@
-#include <math.h>
 #include <unistd.h>
+#include <iostream>
+#include <string>
 
+#include <project_rsc/stop.h>
 #include <ros/ros.h>
 #include <std_msgs/String.h>
-#include <std_msgs/Float64.h>
-#include <tf/transform_listener.h>
-#include <project_rsc/move.h>
-#include <project_rsc/rotate.h>
+#include <std_msgs/Float32.h>
+#include <std_msgs/Int16.h>
 
 #include "global.h"
 
-int running = 0;
+ros::Publisher serialPub;
+ros::Subscriber serialSub;
+ros::Subscriber serialRWheelEncoder;
+ros::Subscriber serialLWheelEncoder;
 
-void pilotCB(const std_msgs::String::ConstPtr& msg)
+void enableRobot()
 {
-    ROS_INFO("received response from pilot");
+    std_msgs::String msg;
 
-    if (msg->data == ROBOT_DONE)
-        running = 0;
-    else
-        running = 1;
+    msg.data = "en";
+    serialPub.publish(msg);
+}
+
+void moveRobot()
+{
+    std_msgs::String msg;
+
+    msg.data = "1 POS";
+    serialPub.publish(msg);
+    msg.data = "2 POS";
+    serialPub.publish(msg);
+
+    // msg.data = "1v-200";
+    // serialPub.publish(msg);
+    // msg.data = "2v200";
+    // serialPub.publish(msg);
+}
+
+void stopRobot()
+{
+    std_msgs::String msg;
+
+    msg.data = "1v0";
+    serialPub.publish(msg);
+    msg.data = "2v0";
+    serialPub.publish(msg);
+}
+
+void serialRWheelEncoderCB(const std_msgs::Int16::ConstPtr& msg)
+{
+    ROS_INFO("received right wheel encoder value: %d", msg->data);
+}
+
+void serialLWheelEncoderCB(const std_msgs::Int16::ConstPtr& msg)
+{
+    ROS_INFO("received left wheel encoder value: %d", msg->data);
+}
+
+void serialSubCB(const std_msgs::String::ConstPtr& msg)
+{
+    ROS_INFO("response from robot %s", msg->data.c_str());
 }
 
 int main(int argc, char* argv[])
@@ -28,58 +69,18 @@ int main(int argc, char* argv[])
     ROS_INFO("mock driver starting");
 
     ros::NodeHandle nh;
-    ros::Subscriber sub = nh.subscribe(PILOT_RSP, 100, pilotCB);
-    ros::Publisher mvPub = nh.advertise<project_rsc::move>(MOVE_CMD,100);
-    ros::Publisher rotPub = nh.advertise<project_rsc::rotate>(ROTATE_CMD,100);
+    serialPub = nh.advertise<std_msgs::String>(SERIAL_CMD,100);
+    serialSub = nh.subscribe(SERIAL_RSP, 100, serialSubCB);
+    serialRWheelEncoder = nh.subscribe(SERIAL_R_WHEEL_ENCODER_VALUE, 100, serialRWheelEncoderCB);
+    serialLWheelEncoder = nh.subscribe(SERIAL_L_WHEEL_ENCODER_VALUE, 100, serialLWheelEncoderCB);
 
-    tf::TransformListener tfListener;
+    enableRobot();
+    std::cin.get();
+    moveRobot();
+    usleep(4000000);
+    std::cin.get();
+    stopRobot();
 
-    while (nh.ok())
-    {
-        tf::StampedTransform transform;
-        try
-        {
-            tfListener.waitForTransform("odom", "base_link",
-                                        ros::Time(0), ros::Duration(10.0));
-            tfListener.lookupTransform("odom", "base_link",
-                                        ros::Time(0), transform);
-            tf::Vector3 org = transform.getOrigin();
-            tf::Quaternion rot = transform.getRotation();
-            ROS_INFO("x %f, y %f, theta %f", org.getX(), org.getY(), rot.getAngle());
-        }
-        catch (tf::TransformException ex)
-        {
-            ROS_ERROR("%s",ex.what());
-            ros::Duration(1.0).sleep();
-        }
-
-        project_rsc::move mv_msg;
-        mv_msg.direction = 1;
-        mv_msg.length = 10;
-        mvPub.publish(mv_msg);
-        ros::spinOnce();
-        running = 1;
-
-        while(running == 1)
-            sleep (2);
-    }
-
-    // for (int i = 0; i < 1; i++)
-    // {
-    //     project_rsc::rotate rot_msg;
-    //     rot_msg.direction = 1;
-    //     rot_msg.degrees = 2*M_PI;
-    //     rotPub.publish(rot_msg);
-    //     ros::spinOnce();
-    //     sleep (8);
-
-    //     project_rsc::move mv_msg;
-    //     mv_msg.direction = 1;
-    //     mv_msg.length = 18;
-    //     mvPub.publish(mv_msg);
-    //     ros::spinOnce();
-    //     sleep (5);
-    // }
-
+    usleep(1000000);
     return 0;
 }
