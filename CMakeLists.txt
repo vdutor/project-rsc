@@ -7,6 +7,7 @@ project(project_rsc)
 find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   roscpp
+  differential_drive
   tf
   sensor_msgs
   message_generation

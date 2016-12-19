@@ -5,13 +5,13 @@
 #define PI 3.141592
 #define SUB_BUFFER_SIZE 1  // Size of buffer for subscriber.
 #define PUB_BUFFER_SIZE 1000  // Size of buffer for publisher.
-#define WALL_DISTANCE .15
+#define WALL_DISTANCE .50
 #define MAX_SPEED 5
 #define P_DEFAULT 10    // Proportional constant for controller
 #define D_DEFAULT 5     // Derivative constant for controller
 #define ANGLE_COEF 1    // Proportional constant for angle controller
-#define DIRECTION 1 // 1 for wall on the left side of the robot (-1 for the right side).
-#define PUB_TOPIC "/cmd_vel"
+#define DIRECTION -1 // 1 for wall on the left side of the robot (-1 for the right side).
+#define PUB_TOPIC "/twist"
 #define SUB_TOPIC "/scan"
 #define TO_DEGREE(r) (((r)/PI) * 180.0)
 #define DEBUG
@@ -41,20 +41,21 @@ void WallFollowing::publishMessage()
     //preparing message
     geometry_msgs::Twist msg;
 
-    msg.angular.z = direction*(P*e + D*diffE) + angleCoef * (angleMin - PI*direction/2);
-
-    if (distFront < wallDistance){
-        msg.linear.x = 0;
-    }
-    else if (distFront < wallDistance * 2){
-        msg.linear.x = 0.5*maxSpeed;
-    }
-    else if (fabs(angleMin)>1.75){
-        msg.linear.x = 0.4*maxSpeed;
-    }
-    else {
-        msg.linear.x = maxSpeed;
-    }
+    // msg.angular.z = direction*(P*e + D*diffE) + angleCoef * (angleMin - PI*direction/2);
+    msg.angular.z = 0;
+    msg.linear.x = 2;
+//     if (distFront < wallDistance){
+//         msg.linear.x = 0;
+//     }
+//     else if (distFront < wallDistance * 2){
+//         msg.linear.x = 0.5*maxSpeed;
+//     }
+//     else if (fabs(angleMin)>1.75){
+//         msg.linear.x = 0.4*maxSpeed;
+//     }
+//     else {
+//         msg.linear.x = maxSpeed;
+//     }
 
 #ifdef DEBUG
     cout << "angle vel: " << msg.angular.z;
