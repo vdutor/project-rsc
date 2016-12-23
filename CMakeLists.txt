@@ -7,6 +7,7 @@ project(project_rsc)
 find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   roscpp
+  differential_drive
   tf
   sensor_msgs
   message_generation
@@ -55,16 +56,13 @@ set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  move.msg
-  rotate.msg
   stop.msg
 )
 
 ## Generate services in the 'srv' folder
-add_service_files(
-  FILES
-  pilot.srv
-)
+#add_service_files(
+#  FILES
+#)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -143,9 +141,8 @@ add_executable(wallfollowing src/wallfollowing.cpp)
 add_executable(face_detection_node src/face_detection.cpp)
 add_executable(laser_node src/laser.cpp)
 add_executable(r2serial_node src/r2serial.cpp)
-add_executable(pilot_node src/pilot.cpp src/movement.cpp src/odometry.cpp)
+add_executable(pilot_node src/pilot.cpp)
 add_executable(mockdriver_node src/mock_driver.cpp)
-add_executable(stopdriver_node src/stop_driver.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -158,7 +155,6 @@ target_link_libraries(laser_node ${catkin_LIBRARIES})
 target_link_libraries(r2serial_node ${catkin_LIBRARIES})
 target_link_libraries(pilot_node ${catkin_LIBRARIES})
 target_link_libraries(mockdriver_node ${catkin_LIBRARIES})
-target_link_libraries(stopdriver_node ${catkin_LIBRARIES})
 
 #############
 ## Install ##
