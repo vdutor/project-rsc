@@ -160,40 +160,81 @@ void *encThread(void *arg)
     std_msgs::Int16 iMsg;
     int rEncoderVal, lEncoderVal;
 
+    int hackskillzmuch = 0;
+
     ROS_INFO("encThread: encoder thread running");
 
     while (ros::ok()) {
-        pthread_mutex_lock(&printf_mutex);
-        fprintf(fpSerial, "%s\n", "1 POS");
-        pthread_mutex_unlock(&printf_mutex);
-
-        pthread_mutex_lock(&printf_mutex);
-        bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
-        pthread_mutex_unlock(&printf_mutex);
-        if (bufPos != NULL)
-            rEncoderVal = atoi(ucResponse);
-
-        usleep(40000);
-
-        pthread_mutex_lock(&printf_mutex);
-        fprintf(fpSerial, "%s\n", "2 POS");
-        pthread_mutex_unlock(&printf_mutex);
-
-        pthread_mutex_lock(&printf_mutex);
-        bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
-        pthread_mutex_unlock(&printf_mutex);
-        if (bufPos != NULL)
-            lEncoderVal = atoi(ucResponse);
-
-        if (rEncoderVal != 0 && lEncoderVal != 0)
+        if (hackskillzmuch)
         {
-            iMsg.data = rEncoderVal;
-            rWheelEncoderMsg.publish(iMsg);
-            iMsg.data = lEncoderVal;
-            lWheelEncoderMsg.publish(iMsg);
-        }
+            hackskillzmuch = 0;
+            pthread_mutex_lock(&printf_mutex);
+            fprintf(fpSerial, "%s\n", "1 POS");
+            pthread_mutex_unlock(&printf_mutex);
 
-        usleep(100000);
+            pthread_mutex_lock(&printf_mutex);
+            bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
+            pthread_mutex_unlock(&printf_mutex);
+            if (bufPos != NULL)
+                rEncoderVal = atoi(ucResponse);
+
+            usleep(40000);
+
+            pthread_mutex_lock(&printf_mutex);
+            fprintf(fpSerial, "%s\n", "2 POS");
+            pthread_mutex_unlock(&printf_mutex);
+
+            pthread_mutex_lock(&printf_mutex);
+            bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
+            pthread_mutex_unlock(&printf_mutex);
+            if (bufPos != NULL)
+                lEncoderVal = atoi(ucResponse);
+
+            if (rEncoderVal != 0 && lEncoderVal != 0)
+            {
+                iMsg.data = rEncoderVal;
+                rWheelEncoderMsg.publish(iMsg);
+                iMsg.data = -lEncoderVal;
+                lWheelEncoderMsg.publish(iMsg);
+            }
+
+            usleep(100000);
+        }
+        else
+        {
+            hackskillzmuch = 0;
+            pthread_mutex_lock(&printf_mutex);
+            fprintf(fpSerial, "%s\n", "2 POS");
+            pthread_mutex_unlock(&printf_mutex);
+
+            pthread_mutex_lock(&printf_mutex);
+            bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
+            pthread_mutex_unlock(&printf_mutex);
+            if (bufPos != NULL)
+                lEncoderVal = atoi(ucResponse);
+
+            usleep(40000);
+
+            pthread_mutex_lock(&printf_mutex);
+            fprintf(fpSerial, "%s\n", "1 POS");
+            pthread_mutex_unlock(&printf_mutex);
+
+            pthread_mutex_lock(&printf_mutex);
+            bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
+            pthread_mutex_unlock(&printf_mutex);
+            if (bufPos != NULL)
+                rEncoderVal = atoi(ucResponse);
+
+            if (rEncoderVal != 0 && lEncoderVal != 0)
+            {
+                iMsg.data = rEncoderVal;
+                rWheelEncoderMsg.publish(iMsg);
+                iMsg.data = -lEncoderVal;
+                lWheelEncoderMsg.publish(iMsg);
+            }
+
+            usleep(100000);
+        }
     }
     return NULL;
 }

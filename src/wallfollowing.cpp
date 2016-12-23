@@ -41,21 +41,19 @@ void WallFollowing::publishMessage()
     //preparing message
     geometry_msgs::Twist msg;
 
-    // msg.angular.z = direction*(P*e + D*diffE) + angleCoef * (angleMin - PI*direction/2);
-    msg.angular.z = 0;
-    msg.linear.x = 2;
-//     if (distFront < wallDistance){
-//         msg.linear.x = 0;
-//     }
-//     else if (distFront < wallDistance * 2){
-//         msg.linear.x = 0.5*maxSpeed;
-//     }
-//     else if (fabs(angleMin)>1.75){
-//         msg.linear.x = 0.4*maxSpeed;
-//     }
-//     else {
-//         msg.linear.x = maxSpeed;
-//     }
+    msg.angular.z = direction*(P*e + D*diffE) + angleCoef * (angleMin - PI*direction/2);
+    if (distFront < wallDistance){
+        msg.linear.x = 0;
+    }
+    else if (distFront < wallDistance * 2){
+        msg.linear.x = 0.5*maxSpeed;
+    }
+    else if (fabs(angleMin)>1.75){
+        msg.linear.x = 0.4*maxSpeed;
+    }
+    else {
+        msg.linear.x = maxSpeed;
+    }
 
 #ifdef DEBUG
     cout << "angle vel: " << msg.angular.z;

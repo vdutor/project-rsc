@@ -43,19 +43,23 @@ void Pilot::enableRobot()
 
 void Pilot::setLSpeed(int rSpeed)
 {
+    // TODO: this is actually right wheel
     std_msgs::String msg;
 
     msg.data = "2v" + to_string(rSpeed);
-    ROS_INFO("left wheel set to %s", msg.data.c_str());
+    ROS_INFO("right wheel set to %s", msg.data.c_str());
     serialPub.publish(msg);
 }
 
 void Pilot::setRSpeed(int rSpeed)
 {
+    // TODO: this is actually left wheel
     std_msgs::String msg;
 
-    msg.data = "1v" + to_string(rSpeed);
-    ROS_INFO("rigth wheel set to %s", msg.data.c_str());
+    // multiply speed by factor to compensate for bad motor
+    int adaptedSpeed = 1.018 * rSpeed;
+    msg.data = "1v" + to_string(adaptedSpeed);
+    ROS_INFO("left wheel set to %s", msg.data.c_str());
     serialPub.publish(msg);
 }
 
@@ -89,14 +93,14 @@ void lWheelTargetCB(const std_msgs::Float32::ConstPtr& msg)
 
 void serialRWheelEncoderCB(const std_msgs::Int16::ConstPtr& msg)
 {
-    ROS_INFO("received right wheel encoder value");
+    // ROS_INFO("received right wheel encoder value");
 
     rWheelEncoder.publish(*msg);
 }
 
 void serialLWheelEncoderCB(const std_msgs::Int16::ConstPtr& msg)
 {
-    ROS_INFO("received left wheel encoder value");
+    // ROS_INFO("received left wheel encoder value");
 
     lWheelEncoder.publish(*msg);
 }
