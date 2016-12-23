@@ -13,7 +13,7 @@
       <rosparam param="Ki">0</rosparam>
       <rosparam param="Kd">0</rosparam>
       <rosparam param="out_min">-255</rosparam>
-      <rosparam param="out_max">412</rosparam>
+      <rosparam param="out_max">600</rosparam>
       <rosparam param="rate">30</rosparam>
       <rosparam param="timeout_ticks">10</rosparam>
       <rosparam param="rolling_pts">5</rosparam>
@@ -27,7 +27,7 @@
       <rosparam param="Ki">0</rosparam>
       <rosparam param="Kd">0</rosparam>
       <rosparam param="out_min">-255</rosparam>
-      <rosparam param="out_max">412</rosparam>
+      <rosparam param="out_max">600</rosparam>
       <rosparam param="rate">30</rosparam>
       <rosparam param="timeout_ticks">10</rosparam>
       <rosparam param="rolling_pts">5</rosparam>

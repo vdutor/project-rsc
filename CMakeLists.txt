@@ -186,7 +186,9 @@ install(PROGRAMS
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 install(FILES
-    slam.launch
+    launch/slam.launch
+    launch/diff_drive.launch
+    launch/pilot.launch
     # myfile2
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )

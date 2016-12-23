@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="project_rsc" type="pilot_node" name="pilot"/>
+    <node pkg="project_rsc" type="r2serial_node" name="r2serial" output="screen"/>
+</launch>

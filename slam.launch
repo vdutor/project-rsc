@@ -1,8 +1,0 @@
-<launch>
-    <!-- <param name="publish_frequency" type="double" value="20.0" /> -->
-
-    <node name="urg_node" pkg="urg_node" type="urg_node" />
-    <node pkg="tf" type="static_transform_publisher" name="scan_frame_broadcaster" args="0 0 0 0 0 0 1 base_link laser 100" />
-    <node pkg="gmapping" type="slam_gmapping" name="gmapping" args="scan:=scan" output="screen"/>
-    <node pkg="project_rsc" type="wallfollowing" name="wallfollowing" output="screen"/>
-</launch>

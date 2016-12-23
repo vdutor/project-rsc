@@ -1,0 +1,13 @@
+<launch>
+
+    <node name="urg_node" pkg="urg_node" type="urg_node" />
+    <node pkg="tf" type="static_transform_publisher" name="scan_frame_broadcaster" args="0 0 0 0 0 0 1 base_link laser 100" />
+    <node pkg="gmapping" type="slam_gmapping" name="gmapping" args="scan:=scan" output="screen">
+        <param name="~map_update_interval" value="2.0"/>
+        <!-- <param name="~xmin" value="-5.0"/>
+        <param name="~xmax" value="5.0"/>
+        <param name="~ymin" value="-5.0"/>
+        <param name="~ymax" value="5.0"/> -->
+    </node>
+    <node pkg="project_rsc" type="wallfollowing" name="wallfollowing" output="screen"/>
+</launch>
