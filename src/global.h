@@ -10,8 +10,8 @@
 #define R_WHEEL_ENCODER "rwheel"
 #define L_WHEEL_ENCODER "lwheel"
 
-#define R_WHEEL_VEL "rwheel_vel"
-#define L_WHEEL_VEL "lwheel_vel"
+#define R_WHEEL_VEL "rmotor_cmd"
+#define L_WHEEL_VEL "lmotor_cmd"
 
 #define STOP_CMD "robotstopcommand"
 

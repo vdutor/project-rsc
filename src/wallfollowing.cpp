@@ -3,15 +3,15 @@
 #include <iostream>
 
 #define PI 3.141592
-#define SUB_BUFFER_SIZE 1  // Size of buffer for subscriber.
-#define PUB_BUFFER_SIZE 1000  // Size of buffer for publisher.
-#define WALL_DISTANCE .15
-#define MAX_SPEED 5
-#define P_DEFAULT 10    // Proportional constant for controller
-#define D_DEFAULT 5     // Derivative constant for controller
-#define ANGLE_COEF 1    // Proportional constant for angle controller
-#define DIRECTION 1 // 1 for wall on the left side of the robot (-1 for the right side).
-#define PUB_TOPIC "/cmd_vel"
+#define SUB_BUFFER_SIZE 1       // Size of buffer for subscriber.
+#define PUB_BUFFER_SIZE 1000    // Size of buffer for publisher.
+#define WALL_DISTANCE 1.0
+#define MAX_SPEED 4
+#define P_DEFAULT 10            // Proportional constant for controller
+#define D_DEFAULT 5             // Derivative constant for controller
+#define ANGLE_COEF 1            // Proportional constant for angle controller
+#define DIRECTION -1            // 1 for wall on the left side of the robot (-1 for the right side).
+#define PUB_TOPIC "/twist"
 #define SUB_TOPIC "/scan"
 #define TO_DEGREE(r) (((r)/PI) * 180.0)
 #define DEBUG
@@ -41,8 +41,7 @@ void WallFollowing::publishMessage()
     //preparing message
     geometry_msgs::Twist msg;
 
-    msg.angular.z = direction*(P*e + D*diffE) + angleCoef * (angleMin - PI*direction/2);
-
+    msg.angular.z = -(direction*(P*e + D*diffE) + angleCoef * (angleMin - PI*direction/2));
     if (distFront < wallDistance){
         msg.linear.x = 0;
     }
@@ -68,19 +67,24 @@ void WallFollowing::publishMessage()
 //Subscriber
 void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 {
-    e = 0;
+    // e = 0; // todo
     //vector<float> ranges = msg->ranges;
     int size = msg->ranges.size();
 
     //Variables whith index of highest and lowest value in array.
-    int minIndex = size*(direction+1)/4;
-    int maxIndex = size*(direction+3)/4;
+    int minIndex = size * (direction+1)/4.0;
+    // cout << "min index " << minIndex << endl;
+    int maxIndex = size * (direction+3)/4.0;
+    // cout << "max index " << maxIndex << endl;
 
     //This cycle goes through array and finds minimum
     for(int i = minIndex; i < maxIndex; i++)
     {
-        if (msg->ranges.at(i) < msg->ranges.at(minIndex) && msg->ranges.at(i) > 0.10){
+        if (msg->ranges.at(minIndex) < 0.10 ||
+            (msg->ranges.at(i) < msg->ranges.at(minIndex) && msg->ranges.at(i) > 0.10))
+        {
             minIndex = i;
+            // cout << "I'm setting the min index " << minIndex << endl;
         }
     }
 

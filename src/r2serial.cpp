@@ -158,53 +158,83 @@ void *encThread(void *arg)
     char *bufPos;
     std_msgs::String sMsg;
     std_msgs::Int16 iMsg;
+    int rEncoderVal, lEncoderVal;
+
+    int hackskillzmuch = 0;
 
     ROS_INFO("encThread: encoder thread running");
 
     while (ros::ok()) {
-        pthread_mutex_lock(&printf_mutex);
-        fprintf(fpSerial, "%s\n", "1 POS");
-        pthread_mutex_unlock(&printf_mutex);
+        if (hackskillzmuch)
+        {
+            hackskillzmuch = 0;
+            pthread_mutex_lock(&printf_mutex);
+            fprintf(fpSerial, "%s\n", "1 POS");
+            pthread_mutex_unlock(&printf_mutex);
 
-        usleep(100000);
+            pthread_mutex_lock(&printf_mutex);
+            bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
+            pthread_mutex_unlock(&printf_mutex);
+            if (bufPos != NULL)
+                rEncoderVal = atoi(ucResponse);
 
-        bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
-        if (bufPos != NULL) {
-            // ROS_INFO("uc%dResponse: %s", ucIndex, ucResponse);
-            int iVal = atoi(ucResponse);
-            if (iVal != 0)
+            usleep(40000);
+
+            pthread_mutex_lock(&printf_mutex);
+            fprintf(fpSerial, "%s\n", "2 POS");
+            pthread_mutex_unlock(&printf_mutex);
+
+            pthread_mutex_lock(&printf_mutex);
+            bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
+            pthread_mutex_unlock(&printf_mutex);
+            if (bufPos != NULL)
+                lEncoderVal = atoi(ucResponse);
+
+            if (rEncoderVal != 0 && lEncoderVal != 0)
             {
-                iMsg.data = iVal;
+                iMsg.data = rEncoderVal;
                 rWheelEncoderMsg.publish(iMsg);
-                // if (iVal < 0)
-                //     rWheelEncoderMsg.publish(iMsg);
-                // else
-                //     ROS_DEBUG("wrong value from encoder!");
-            }
-        }
-
-        pthread_mutex_lock(&printf_mutex);
-        fprintf(fpSerial, "%s\n", "2 POS");
-        pthread_mutex_unlock(&printf_mutex);
-
-        usleep(100000);
-
-        bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
-        if (bufPos != NULL) {
-            // ROS_INFO("uc%dResponse: %s", ucIndex, ucResponse);
-            int iVal = atoi(ucResponse);
-            if (iVal != 0)
-            {
-                iMsg.data = iVal;
+                iMsg.data = -lEncoderVal;
                 lWheelEncoderMsg.publish(iMsg);
-                // if (iVal > 0)
-                //     lWheelEncoderMsg.publish(iMsg);
-                // else
-                //     ROS_DEBUG("wrong value from encoder!");
             }
-        }
 
-        usleep(10000);
+            usleep(100000);
+        }
+        else
+        {
+            hackskillzmuch = 0;
+            pthread_mutex_lock(&printf_mutex);
+            fprintf(fpSerial, "%s\n", "2 POS");
+            pthread_mutex_unlock(&printf_mutex);
+
+            pthread_mutex_lock(&printf_mutex);
+            bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
+            pthread_mutex_unlock(&printf_mutex);
+            if (bufPos != NULL)
+                lEncoderVal = atoi(ucResponse);
+
+            usleep(40000);
+
+            pthread_mutex_lock(&printf_mutex);
+            fprintf(fpSerial, "%s\n", "1 POS");
+            pthread_mutex_unlock(&printf_mutex);
+
+            pthread_mutex_lock(&printf_mutex);
+            bufPos = fgets(ucResponse, rcvBufSize, fpSerial);
+            pthread_mutex_unlock(&printf_mutex);
+            if (bufPos != NULL)
+                rEncoderVal = atoi(ucResponse);
+
+            if (rEncoderVal != 0 && lEncoderVal != 0)
+            {
+                iMsg.data = rEncoderVal;
+                rWheelEncoderMsg.publish(iMsg);
+                iMsg.data = -lEncoderVal;
+                lWheelEncoderMsg.publish(iMsg);
+            }
+
+            usleep(100000);
+        }
     }
     return NULL;
 }
@@ -249,43 +279,16 @@ int main(int argc, char **argv)
 
     pthread_t rcvThrID;   //receive thread ID
     pthread_t encThrID;   //encoder thread ID
-    int err;
-
     pthread_mutex_init(&printf_mutex, NULL);
+    int err;
 
     //Initialize ROS
     ros::init(argc, argv, "r2serial");
     ros::NodeHandle rosNode;
     ROS_INFO("r2serial starting");
 
-    //Open and initialize the serial port to the uController
-    if (argc > 1) {
-        if(sscanf(argv[1],"%d", &ucIndex)==1) {
-            sprintf(topicSubscribe, "uc%dCommand",ucIndex);
-            sprintf(topicPublish, "uc%dResponse",ucIndex);
-        }
-        else {
-            ROS_ERROR("ucontroller index parameter invalid");
-            return 1;
-        }
-    }
-    else {
-        strcpy(topicSubscribe, "uc0Command");
-        strcpy(topicPublish, "uc0Response");
-    }
-
     strcpy(port, DEFAULT_SERIALPORT);
-    if (argc > 2)
-       strcpy(port, argv[2]);
-
     baud = DEFAULT_BAUDRATE;
-    if (argc > 3) {
-      if(sscanf(argv[3],"%d", &baud)!=1) {
-        ROS_ERROR("ucontroller baud rate parameter invalid");
-        return 1;
-      }
-    }
-
     ROS_INFO("connection initializing (%s) at %d baud", port, baud);
 
 #ifndef MOCK_SERIAL

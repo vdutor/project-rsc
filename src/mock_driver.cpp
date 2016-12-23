@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
     serialPub = nh.advertise<std_msgs::String>(SERIAL_CMD,100);
     serialSub = nh.subscribe(SERIAL_RSP, 100, serialSubCB);
     serialRWheelEncoder = nh.subscribe(SERIAL_R_WHEEL_ENCODER_VALUE, 100, serialRWheelEncoderCB);
-    // serialLWheelEncoder = nh.subscribe(SERIAL_L_WHEEL_ENCODER_VALUE, 100, serialLWheelEncoderCB);
+    serialLWheelEncoder = nh.subscribe(SERIAL_L_WHEEL_ENCODER_VALUE, 100, serialLWheelEncoderCB);
 
     enableRobot();
     ros::spinOnce();
@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
     std::cin.get();
     stopRobot();
     ros::spinOnce();
-
     usleep(1000000);
+
     return 0;
 }
