@@ -21,9 +21,11 @@ static const uint32_t MY_ROS_QUEUE_SIZE = 1000;
 int ctr = 0;
 int im_width;
 int im_height;
-const std::string names[3] = {"vincent", "jonas", "alexis"};
+const std::string names[3] = {"vincent", "alexis","jonas"};
 CascadeClassifier haar_cascade;
-Ptr<FaceRecognizer> model = createFisherFaceRecognizer();
+Ptr<FaceRecognizer> model = createLBPHFaceRecognizer();
+Ptr<FaceRecognizer> model2 = createEigenFaceRecognizer();
+Ptr<FaceRecognizer> model3 = createFisherFaceRecognizer();
 
 
 void read_csv(string res_path, vector<Mat>& images, vector<int>& labels, char separator = ',')
@@ -45,13 +47,17 @@ void read_csv(string res_path, vector<Mat>& images, vector<int>& labels, char se
         getline(liness, classlabel);
         if(!im_name.empty() && !classlabel.empty())
         {
-            Mat m;
+            Mat m, mhist;
             cvtColor(imread(res_path + im_name,1),m,CV_BGR2GRAY);
+            equalizeHist(m,mhist);
             // uncomment to see training dataset
             //imshow("face_recognizer", m);
             //waitKey(0);
-            images.push_back(m);
+            images.push_back(mhist);
             labels.push_back(atoi(classlabel.c_str()));
+           
+           
+
         }
     }
 }
@@ -60,10 +66,14 @@ void init_model(string res_path)
 {
     vector<Mat> images;
     vector<int> labels;
+    
     read_csv(res_path, images, labels);
+    
     // TODO ideally the model is only trained once, and then loaded
     // this funcitonallity is available in opencv
     model->train(images, labels);
+    model2->train(images, labels);
+    model3->train(images, labels);
 }
 
 void recognize_face(Mat original, Mat gray, Rect face_contour)
@@ -72,10 +82,28 @@ void recognize_face(Mat original, Mat gray, Rect face_contour)
     Mat face = gray(face_contour);
     Mat face_resized;
     cv::resize(face, face_resized, Size(200, 200), 1.0, 1.0, INTER_CUBIC);
+    
+    
     // Now perform the prediction
-    int prediction = model->predict(face_resized);
+    int prediction = -1;
+    int prediction2 = -1;
+    int prediction3 = -1;
+    double confidence = 0.0;
+    model->predict(face_resized, prediction, confidence);
+    model2->predict(face_resized, prediction2, confidence);
+    model3->predict(face_resized, prediction3, confidence);
+    
+    if (prediction3 == prediction2)
+    	prediction = prediction2;
+ 
     // Create the text we will annotate the box with:
-    string box_text = names[prediction];//format("Prediction = %d", prediction);
+    std::string box_text;
+    char text[30];
+	sprintf(text, "%s : %.lf %%", (char*) names[prediction].c_str(), confidence);
+	box_text = text;
+    //string box_text = names[prediction] prediction;//format("Prediction = %d", prediction);
+    
+    
     // Calculate the position for annotated text
     int pos_x = std::max(face_contour.tl().x - 10, 0);
     int pos_y = std::max(face_contour.tl().y - 10, 0);
@@ -89,6 +117,7 @@ void detect_faces(Mat frame)
     Mat original = frame.clone();
     Mat gray;
     cvtColor(original, gray, CV_BGR2GRAY);
+	equalizeHist(gray,gray	);
     vector< Rect_<int> > faces;
     haar_cascade.detectMultiScale(gray, faces);
     for(int i = 0; i < faces.size(); i++)
@@ -117,8 +146,8 @@ void imgage_rgb_cb(const sensor_msgs::Image::ConstPtr& msg)
     {
         ROS_ERROR("cv_bridge exception: %s", e.what());
     }
-}
 
+}
 int main(int argc, char* argv[])
 {
     if (argc != 2) {
