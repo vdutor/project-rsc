@@ -1,6 +1,10 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <fstream>
+#include <cstdio>
+#include <memory>
+#include <stdexcept>
 
 #include "face_detection_manager.hpp"
 
@@ -15,6 +19,8 @@ FaceDetectionManager:: FaceDetectionManager(string res_path, string pictures, st
     this->res_path = res_path;
     this->pictures = pictures;
     this->recordings = recordings;
+
+    recordings_prefix = res_path + recordings;
 
     // FaceRecognizer
     vector<Mat> images;
@@ -156,27 +162,40 @@ void FaceDetectionManager::analyse_detection_history()
 
         if (sum >= 0.85 * HISTORY_LENGTH && !in_frame[i])
         {
-            cout << "hello, " << names[i] << endl;
             in_frame[i] = true;
+            person_enters_feed(names[i]);
         }
         if (sum <= 0.15 * HISTORY_LENGTH && in_frame[i])
         {
-            cout << "bye, " << names[i] << endl;
             in_frame[i] = false;
+            person_leaves_feed(names[i]);
         }
 
     }
 }
 
+void FaceDetectionManager::person_enters_feed(std::string person)
+{
+    cout << "hello, " << person << endl;
+
+    std::string cmd = "mplayer " + recordings_prefix + person + ".mp3";
+    exec(cmd.c_str());
+}
+
+void FaceDetectionManager::person_leaves_feed(std::string person)
+{
+    cout << "bye, " << person << endl;
+}
+
 
 void FaceDetectionManager::exec(const char* cmd)
 {
-    //char buffer[128];
-    //std::string result = "";
-    //shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
-    //if (!pipe) throw std::runtime_error("popen() failed!");
-    //while (!feof(pipe.get())) {
-        //if (fgets(buffer, 128, pipe.get()) != NULL)
-            //result += buffer;
-    //}
+    char buffer[128];
+    string result = "";
+    shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) throw runtime_error("popen() failed!");
+    while (!feof(pipe.get())) {
+        if (fgets(buffer, 128, pipe.get()) != NULL)
+            result += buffer;
+    }
 }

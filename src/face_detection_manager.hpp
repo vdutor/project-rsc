@@ -24,6 +24,7 @@ class FaceDetectionManager
         std::string res_path;
         std::string pictures;
         std::string recordings;
+        std::string recordings_prefix;
         cv::CascadeClassifier face_cascade;
         cv::CascadeClassifier eye_cascade;
         cv::Ptr<cv::face::FaceRecognizer> model = cv::face::createLBPHFaceRecognizer();
@@ -35,7 +36,8 @@ class FaceDetectionManager
         void recognize_face(cv::Mat original, cv::Mat gray, cv::Rect face_contour);
         void print_detection_history();
         void analyse_detection_history();
-
+        void person_enters_feed(std::string person);
+        void person_leaves_feed(std::string person);
 };
 
 #endif
