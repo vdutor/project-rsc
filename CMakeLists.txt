@@ -55,10 +55,10 @@ set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-  FILES
-  stop.msg
-)
+#add_message_files(
+  #FILES
+  #stop.msg
+#)
 
 ## Generate services in the 'srv' folder
 #add_service_files(
@@ -190,7 +190,6 @@ install(FILES
     launch/slam.launch
     launch/diff_drive.launch
     launch/pilot.launch
-    # myfile2
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
