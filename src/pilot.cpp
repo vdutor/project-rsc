@@ -1,8 +1,6 @@
 #include <iostream>
 #include <string>
 
-#include <project_rsc/stop.h>
-
 #include "pilot.h"
 
 using namespace std;
@@ -110,13 +108,6 @@ void serialSubCB(const std_msgs::String::ConstPtr& msg)
     ROS_INFO("response from robot %s", msg->data.c_str());
 }
 
-void stopCommandCB(const project_rsc::stop::ConstPtr& msg)
-{
-    ROS_INFO("received stop command");
-
-    pilot->stopRobot();
-}
-
 int main(int argc, char* argv[])
 {
     ros::init(argc, argv, "pilot_node");
@@ -132,7 +123,6 @@ int main(int argc, char* argv[])
     lWheelTarget = nh.subscribe(L_WHEEL_VEL, 100, lWheelTargetCB);
     serialPub = nh.advertise<std_msgs::String>(SERIAL_CMD,100);
     serialSub = nh.subscribe(SERIAL_RSP, 100, serialSubCB);
-    stopCommandSub = nh.subscribe(STOP_CMD, 100, stopCommandCB);
 
     pilot = new Pilot();
 
