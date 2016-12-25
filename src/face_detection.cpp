@@ -16,6 +16,8 @@ using namespace cv::face;
 using namespace cv;
 using namespace std;
 
+//#define DEBUG
+
 static const uint32_t MY_ROS_QUEUE_SIZE = 1000;
 
 int ctr = 0;
@@ -49,14 +51,16 @@ void read_csv(string res_path, string dataset, vector<Mat>& images, vector<int>&
         getline(liness, classlabel);
         if(!im_name.empty() && !classlabel.empty())
         {
-            Mat image, mhist;
+            Mat image;
             int label = atoi(classlabel.c_str());
             cvtColor(imread(res_path + dataset + im_name,1),image,CV_BGR2GRAY);
-            equalizeHist(image,mhist);
-            // uncomment to see training dataset
-            //cout << "label: " << label << endl;
-            imshow("face_recognizer", mhist);
+
+#ifdef DEBUG
+            cout << "label: " << label << endl;
+            imshow("face_recognizer", image);
             waitKey(0);
+#endif
+
             images.push_back(image);
             labels.push_back(label);
         }
@@ -145,7 +149,12 @@ void imgage_rgb_cb(const sensor_msgs::Image::ConstPtr& msg)
 }
 int main(int argc, char* argv[])
 {
-    if (argc != 2) {
+    cout << "argc: " << argc << endl;
+    cout << argv[0] << endl;
+    cout << argv[1] << endl;
+    cout << argv[2] << endl;
+    cout << argv[3] << endl;
+    if (argc <= 1) {
         cout << "usage: " << argv[0] << " </path/to/resource_folder>" << endl;
         exit(1);
     }
@@ -159,16 +168,9 @@ int main(int argc, char* argv[])
     face_cascade.load(res_fldr + "haarcascade_frontalface_default.xml");
     eye_cascade.load(res_fldr + "haarcascade_eye.xml");
 
-    //VideoCapture cap(0);
-    //Mat frame;
-    //while(1)
-    //{
-    //cap >> frame;
-    //detect_faces(frame);
-    //}
+    cout << "created haarcascades" << endl;
 
     ros::NodeHandle nh;
-    // ros::Subscriber sub = nh.subscribe("camera/rgb/image_raw", MY_ROS_QUEUE_SIZE, imgcb);
     ros::Subscriber sub = nh.subscribe("camera/rgb/image_color", MY_ROS_QUEUE_SIZE, imgage_rgb_cb);
 
     ros::spin();
