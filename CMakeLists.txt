@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   differential_drive
   tf
   sensor_msgs
+  people_msgs
   message_generation
 )
 
@@ -142,7 +143,7 @@ add_executable(face_detection_node src/face_detection.cpp)
 add_executable(laser_node src/laser.cpp)
 add_executable(r2serial_node src/r2serial.cpp)
 add_executable(pilot_node src/pilot.cpp)
-add_executable(mockdriver_node src/mock_driver.cpp)
+add_executable(tracking_node src/tracking.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -154,7 +155,7 @@ target_link_libraries(face_detection_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES
 target_link_libraries(laser_node ${catkin_LIBRARIES})
 target_link_libraries(r2serial_node ${catkin_LIBRARIES})
 target_link_libraries(pilot_node ${catkin_LIBRARIES})
-target_link_libraries(mockdriver_node ${catkin_LIBRARIES})
+target_link_libraries(tracking_node ${catkin_LIBRARIES})
 
 #############
 ## Install ##
