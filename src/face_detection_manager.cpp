@@ -125,7 +125,7 @@ void FaceDetectionManager::detect_faces(Mat frame)
     for(int i = 0; i < faces.size(); i++)
     {
         recognize_face(original, gray, faces[i]);
-        rectangle(original, faces[i], CV_RGB(0, 255,0), 1);
+        rectangle(original, faces[i], CV_RGB(0, 255, 255), 2);
     }
 
     imshow("face_recognizer", original);
@@ -174,7 +174,7 @@ void FaceDetectionManager::analyse_detection_history()
     }
 }
 
-void FaceDetectionManager::person_enters_feed(std::string person)
+void FaceDetectionManager::person_enters_feed(string person)
 {
     cout << "hello, " << person << endl;
 
@@ -182,9 +182,11 @@ void FaceDetectionManager::person_enters_feed(std::string person)
     exec(cmd.c_str());
 }
 
-void FaceDetectionManager::person_leaves_feed(std::string person)
+void FaceDetectionManager::person_leaves_feed(string person)
 {
     cout << "bye, " << person << endl;
+    std::string cmd = "mplayer " + recordings_prefix + "bye.mp3";
+    exec(cmd.c_str());
 }
 
 

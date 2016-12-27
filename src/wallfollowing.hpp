@@ -1,5 +1,6 @@
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
+#include "std_msgs/String.h"
 #include "geometry_msgs/Twist.h"
 
 class WallFollowing
@@ -34,6 +35,8 @@ public:
 
   void messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg);
 
+  void stopCallback(const std_msgs::String::ConstPtr& msg);
+
 //variables
   double wallDistance; // Desired distance from the wall.
   double e;            // Difference between desired distance from the wall and actual distance.
@@ -46,4 +49,5 @@ public:
   double angleMin;     // Angle, at which was measured the shortest distance.
   double distFront;    // Distance, measured by ranger in front of robot.
   ros::Publisher pubMessage;  // Object for publishing messages.
+  bool arrived = false;
 };

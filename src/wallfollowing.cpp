@@ -75,9 +75,21 @@ void WallFollowing::publishMessage()
     pubMessage.publish(msg);
 }
 
+void WallFollowing::stopCallback(const std_msgs::String::ConstPtr& msg)
+{
+    cout << "Received stop command" << endl;
+    // stop driving
+    geometry_msgs::Twist twist_msg;
+    twist_msg.linear.x = 0;
+    twist_msg.angular.z = 0;
+    pubMessage.publish(twist_msg);
+}
+
+
 //Subscriber
 void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 {
+    if (arrived) return;
     e = 0; // TODO
     int size = msg->ranges.size();
 
@@ -133,12 +145,16 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "wallFollowing");
     ros::NodeHandle n;
 
+
     //Creating publisher
     ros::Publisher pubMessage = n.advertise<geometry_msgs::Twist>(PUB_TOPIC, PUB_BUFFER_SIZE);
 
     //Creating object, which stores data from sensors and has methods for
     //publishing and subscribing
     WallFollowing *follower = new WallFollowing(pubMessage, WALL_DISTANCE, MAX_SPEED, DIRECTION, P_DEFAULT, D_DEFAULT, 1);
+
+    // Creating subscriber
+    ros::Subscriber subStop = n.subscribe("stop", SUB_BUFFER_SIZE, &WallFollowing::stopCallback, follower);
 
     //Creating subscriber and publisher
     ros::Subscriber sub = n.subscribe(SUB_TOPIC, SUB_BUFFER_SIZE, &WallFollowing::messageCallback, follower);
