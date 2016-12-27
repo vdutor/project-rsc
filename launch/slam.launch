@@ -10,7 +10,7 @@
         <param name="~ymax" value="5.0"/> -->
     </node>
     <node pkg="project_rsc" type="wallfollowing" name="wallfollowing" output="screen"/>
-    <node pkg="project_rsc" type="find_end_position" name="find_end_position" output="screen"/>
+    <!-- <node pkg="project_rsc" type="find_end_position.py" name="find_end_position" output="screen"/> -->
 
     <!-- TODO: Add openni or freenect as well -->
 </launch>

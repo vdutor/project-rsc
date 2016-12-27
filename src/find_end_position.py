@@ -4,7 +4,7 @@ import rospy
 import roslib
 import sys
 from std_msgs.msg import String
-from nav_msgs.msg import Odomery
+from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
@@ -18,7 +18,7 @@ class StopDetector:
     def __init__(self, estimated_rtt):
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("camera/rgb/image_color", Image, self.image_callback)
-        self.odom_sub = rospy.Subscriber("odom", Odomery, self.odom_callback)
+        self.odom_sub = rospy.Subscriber("odom", Odometry, self.odom_callback)
         self.redLower1 = (0, 102, 66)
         self.redUpper1 = (10, 240, 210)
         self.redLower2 = (165, 102, 66)

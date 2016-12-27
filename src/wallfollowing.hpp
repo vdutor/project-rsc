@@ -50,4 +50,5 @@ public:
   double distFront;    // Distance, measured by ranger in front of robot.
   ros::Publisher pubMessage;  // Object for publishing messages.
   bool arrived = false;
+  double prev_z = 0;
 };
