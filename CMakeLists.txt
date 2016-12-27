@@ -139,7 +139,7 @@ include_directories(
 
 ## Declare a C++ executable
 add_executable(wallfollowing src/wallfollowing.cpp)
-add_executable(face_detection_node src/face_detection.cpp)
+add_executable(face_detection_node src/face_detection.cpp src/face_detection_manager.cpp)
 add_executable(r2serial_node src/r2serial.cpp)
 add_executable(pilot_node src/pilot.cpp)
 add_executable(tracking_node src/tracking.cpp)
