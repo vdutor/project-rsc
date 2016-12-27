@@ -16,8 +16,9 @@
 #define TWIST_PUB_TOPIC "twist"
 #define LASER_SCAN_SUB_TOPIC "scan"
 #define LEG_TRACK_SUB_TOPIC "people_tracker_measurements"
-#define TRANS_MULTIPLIER 4
-#define ROT_MULTIPLIER 4
+#define TRANS_MULTIPLIER 10
+#define TRANS_MULTIPLIER_SLOW 4
+#define ROT_MULTIPLIER 150
 #define ANGLE_DELTA .001
 #define X_DELTA .001
 
@@ -28,6 +29,8 @@ ros::Subscriber laserScanSub;
 ros::Subscriber legTrackSub;
 
 geometry_msgs::Point predictedPos;
+
+bool stopRobot = false;
 
 void laserScanCB(const sensor_msgs::LaserScan::ConstPtr& msg)
 {
@@ -47,14 +50,21 @@ void laserScanCB(const sensor_msgs::LaserScan::ConstPtr& msg)
     cout << "distFront: " << distFront << endl;
 #endif
 
-    if (distFront < 0.5)
+    if (distFront < 0.5 && distFront > 0.05)
     {
         cout << "too close to nearest obstacle" << endl;
+        stopRobot = true;
         // stop the robot
         geometry_msgs::Twist twist_msg;
         twist_msg.angular.z = 0;
         twist_msg.linear.x = 0;
         twistPub.publish(twist_msg);
+        predictedPos.x = 0;
+        predictedPos.y = 0;
+    }
+    else
+    {
+        stopRobot = false;
     }
 }
 
@@ -65,6 +75,7 @@ void legTrackCB(const people_msgs::PositionMeasurementArray::ConstPtr& msg)
     closestPair.x = 100;
     closestPair.y = 100;
 
+    cout << "I have detected " << msg->people.size() << " people" << endl;
     for( auto it = msg->people.begin(); it != msg->people.end(); ++it )
     {
         geometry_msgs::Point pos = it->pos;
@@ -84,17 +95,28 @@ void legTrackCB(const people_msgs::PositionMeasurementArray::ConstPtr& msg)
         twist_msg.angular.z = 0;
         twist_msg.linear.x = 0;
         twistPub.publish(twist_msg);
+        predictedPos.x = 0;
+        predictedPos.y = 0;
         return;
     }
 
     double angle = atan2(closestPair.y, closestPair.x);
     cout << "person detected at x: " << closestPair.x << " y: " << closestPair.y << " angle: " << angle << endl;
-    // HAHA YOLO
-    twist_msg.angular.z = - angle * ROT_MULTIPLIER;
+    // HOHO HAHA
     if (closestPair.x < 0.75)
-        twist_msg.linear.x = closestPair.x / TRANS_MULTIPLIER;
+    {
+        twist_msg.linear.x = closestPair.x * TRANS_MULTIPLIER_SLOW;
+        twist_msg.angular.z = - closestPair.y * ROT_MULTIPLIER;
+    }
     else
+    {
         twist_msg.linear.x = closestPair.x * TRANS_MULTIPLIER;
+        twist_msg.angular.z = - closestPair.y * ROT_MULTIPLIER * 1.5;
+    }
+    if (stopRobot)
+    {
+        twist_msg.linear.x = 0;
+    }
     twistPub.publish(twist_msg);
 
     predictedPos.x = closestPair.x - closestPair.x * X_DELTA;
@@ -109,8 +131,8 @@ int main(int argc, char* argv[])
 
     ros::NodeHandle nh;
 
-    predictedPos.x = -1;
-    predictedPos.y = -1;
+    predictedPos.x = 0;
+    predictedPos.y = 0;
 
     twistPub = nh.advertise<geometry_msgs::Twist>(TWIST_PUB_TOPIC, 100);
     legTrackSub = nh.subscribe(LEG_TRACK_SUB_TOPIC, 100, legTrackCB);

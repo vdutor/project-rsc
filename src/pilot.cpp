@@ -55,8 +55,8 @@ void Pilot::setRSpeed(int rSpeed)
     std_msgs::String msg;
 
     // multiply speed by factor to compensate for bad motor
-    int adaptedSpeed = 1.018 * rSpeed;
-    msg.data = "1v" + to_string(adaptedSpeed);
+    // int adaptedSpeed = 1.018 * rSpeed;
+    msg.data = "1v" + to_string(rSpeed);
     ROS_INFO("left wheel set to %s", msg.data.c_str());
     serialPub.publish(msg);
 }
