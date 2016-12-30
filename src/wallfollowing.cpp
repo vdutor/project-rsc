@@ -7,7 +7,7 @@
 #define PI 3.141592
 #define SUB_BUFFER_SIZE 1       // Size of buffer for subscriber.
 #define PUB_BUFFER_SIZE 1000    // Size of buffer for publisher.
-#define WALL_DISTANCE 1
+#define WALL_DISTANCE 0.5
 #define MAX_SPEED 5
 #define ROTATION_FACTOR 20
 #define P_DEFAULT 5            // Proportional constant for controller
@@ -23,6 +23,7 @@ using namespace std;
 
 WallFollowing::WallFollowing(ros::Publisher pub, double wallDist, double maxSp, int dir, double pr, double di, double an)
 {
+    state = 0;
     wallDistance = wallDist;
     maxSpeed = maxSp;
     direction = dir;
@@ -81,14 +82,14 @@ void WallFollowing::publishMessage()
 #endif
 
     //publishing message
-    if (!arrived)
+    if (state != 3)
         pubMessage.publish(msg);
 }
 
 void WallFollowing::stopCallback(const std_msgs::String::ConstPtr& msg)
 {
     cout << "Received stop command" << endl;
-    arrived = true;
+    state = 3;
     // stop driving
     geometry_msgs::Twist twist_msg;
     twist_msg.linear.x = 0;
@@ -99,7 +100,7 @@ void WallFollowing::stopCallback(const std_msgs::String::ConstPtr& msg)
 //Subscriber
 void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 {
-    if (arrived) return;
+    if (state == 3) return;
     //e = 0; // TODO
     int size = msg->ranges.size();
 
@@ -143,6 +144,20 @@ void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
     cout << " distFront: " << distFront;
     cout << " error: " << e << endl;
 #endif
+
+    if (state == 0)
+    {
+        if (distFront > 0.5)
+        {
+            // drive forward
+            geometry_msgs::Twist twist_msg;
+            twist_msg.linear.x = 5;
+            twist_msg.angular.z = 0;
+            pubMessage.publish(twist_msg);
+            return;
+        }
+        state = 1;
+    }
 
     //Invoking method for publishing message
     publishMessage();

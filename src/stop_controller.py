@@ -17,8 +17,8 @@ class StopDetector:
 
     def __init__(self, estimated_rtt):
         self.bridge = CvBridge()
-        # self.image_sub = rospy.Subscriber("camera/rgb/image_raw", Image, self.image_callback)
-        self.image_sub = rospy.Subscriber("camera/rgb/image_color", Image, self.image_callback)
+        self.image_sub = rospy.Subscriber("camera/rgb/image_raw", Image, self.image_callback)
+        # self.image_sub = rospy.Subscriber("camera/rgb/image_color", Image, self.image_callback)
         self.odom_sub = rospy.Subscriber("odom", Odometry, self.odom_callback)
         self.blackLower = (0, 0, 0)
         self.blackUpper = (45, 45, 45)
@@ -51,22 +51,22 @@ class StopDetector:
         cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
         center = None
 
-        print len(cnts)
+        # print len(cnts)
 
-        for cnt in cnts:
-            # c = max(cnts, key=cv2.contourArea)
-            # ((x, y), radius) = cv2.minEnclosingCircle(c)
-            epsilon = 0.1*cv2.arcLength(cnt,True)
-            approx = cv2.approxPolyDP(cnt,epsilon,True)
-            # print len(approx)
-            # if len(approx) == 8:
-            cv2.drawContours(mask, cnt, -1, (0, 100, 255), 3)
-            area = cv2.contourArea(cnt)
-            print area
+        # for cnt in cnts:
+        #     # c = max(cnts, key=cv2.contourArea)
+        #     # ((x, y), radius) = cv2.minEnclosingCircle(c)
+        #     epsilon = 0.1*cv2.arcLength(cnt,True)
+        #     approx = cv2.approxPolyDP(cnt,epsilon,True)
+        #     # print len(approx)
+        #     # if len(approx) == 8:
+        #     cv2.drawContours(mask, cnt, -1, (0, 100, 255), 3)
+        #     area = cv2.contourArea(cnt)
+        #     print area
 
-                # print "found stop sign"
+        #         # print "found stop sign"
 
-        cv2.imshow("image", mask)
+        cv2.imshow("image", image)
         cv2.waitKey(1)
 
     def detected_object(self):
