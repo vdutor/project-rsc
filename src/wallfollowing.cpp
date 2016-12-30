@@ -9,10 +9,10 @@
 #define PUB_BUFFER_SIZE 1000    // Size of buffer for publisher.
 #define WALL_DISTANCE 1
 #define MAX_SPEED 5
-#define ROTATION_FACTOR 3
-#define P_DEFAULT 10            // Proportional constant for controller
-#define D_DEFAULT 5             // Derivative constant for controller
-#define ANGLE_COEF 0            // Proportional constant for angle controller
+#define ROTATION_FACTOR 20
+#define P_DEFAULT 5            // Proportional constant for controller
+#define D_DEFAULT 0             // Derivative constant for controller
+#define ANGLE_COEF 1            // Proportional constant for angle controller
 #define DIRECTION -1            // 1 for wall on the left side of the robot (-1 for the right side).
 #define PUB_TOPIC "/twist"
 #define SUB_TOPIC "/scan"
@@ -46,10 +46,18 @@ void WallFollowing::publishMessage()
 
     double fac = 1;
     if (distFront < WALL_DISTANCE * 1.5)
+    {
         fac = distFront - WALL_DISTANCE;
+        msg.angular.z = direction * 10;
+    }
+    else
+    {
+        double current_z = -ROTATION_FACTOR * (direction*(P*e + D*diffE) + angleCoef * (angleMin - PI*direction/2));
+        msg.angular.z = current_z;
+    }
 
+    //prev_z = msg.angular.z;
 
-    msg.angular.z = -ROTATION_FACTOR * (direction*(P*e + D*diffE) + angleCoef * (angleMin - PI*direction/2)) / max(0.01, fac);
     if (distFront < wallDistance)
     {
         msg.linear.x = 0;
@@ -92,7 +100,7 @@ void WallFollowing::stopCallback(const std_msgs::String::ConstPtr& msg)
 void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 {
     if (arrived) return;
-    e=0;
+    //e = 0; // TODO
     int size = msg->ranges.size();
 
     //Variables whith index of highest and lowest value in array.
@@ -118,11 +126,11 @@ void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 
     // find minimum distance in front of the robot
     int delta = 20;
-    distFront = msg->ranges.at(size/2);
+    distFront = 5.;
     for (int i = -delta; i <= delta; i++)
     {
         int j = size/2 + i;
-        if (isnan(msg->ranges.at(j))) continue;
+        if (isnan(msg->ranges.at(j)) || msg->ranges.at(j) < 0.1) continue;
         distFront =min(distFront,(double) msg->ranges.at(j));
     }
 

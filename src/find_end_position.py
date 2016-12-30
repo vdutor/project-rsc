@@ -18,6 +18,7 @@ class StopDetector:
     def __init__(self, estimated_rtt):
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("camera/rgb/image_raw", Image, self.image_callback)
+        # self.image_sub = rospy.Subscriber("camera/rgb/image_color", Image, self.image_callback)
         self.odom_sub = rospy.Subscriber("odom", Odometry, self.odom_callback)
         self.redLower1 = (0, 102, 66)
         self.redUpper1 = (10, 240, 210)
