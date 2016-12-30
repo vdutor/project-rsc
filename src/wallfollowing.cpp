@@ -1,4 +1,5 @@
 #include "wallfollowing.hpp"
+#include <unistd.h>
 #include <cmath>
 #include <math.h>
 #include <iostream>
@@ -6,12 +7,12 @@
 #define PI 3.141592
 #define SUB_BUFFER_SIZE 1       // Size of buffer for subscriber.
 #define PUB_BUFFER_SIZE 1000    // Size of buffer for publisher.
-#define WALL_DISTANCE .5
+#define WALL_DISTANCE 1
 #define MAX_SPEED 5
 #define ROTATION_FACTOR 3
 #define P_DEFAULT 10            // Proportional constant for controller
 #define D_DEFAULT 5             // Derivative constant for controller
-#define ANGLE_COEF 1            // Proportional constant for angle controller
+#define ANGLE_COEF 0            // Proportional constant for angle controller
 #define DIRECTION -1            // 1 for wall on the left side of the robot (-1 for the right side).
 #define PUB_TOPIC "/twist"
 #define SUB_TOPIC "/scan"
@@ -72,12 +73,14 @@ void WallFollowing::publishMessage()
 #endif
 
     //publishing message
-    pubMessage.publish(msg);
+    if (!arrived)
+        pubMessage.publish(msg);
 }
 
 void WallFollowing::stopCallback(const std_msgs::String::ConstPtr& msg)
 {
     cout << "Received stop command" << endl;
+    arrived = true;
     // stop driving
     geometry_msgs::Twist twist_msg;
     twist_msg.linear.x = 0;
@@ -85,12 +88,11 @@ void WallFollowing::stopCallback(const std_msgs::String::ConstPtr& msg)
     pubMessage.publish(twist_msg);
 }
 
-
 //Subscriber
 void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 {
     if (arrived) return;
-    e = 0; // TODO
+    e=0;
     int size = msg->ranges.size();
 
     //Variables whith index of highest and lowest value in array.

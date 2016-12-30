@@ -11,7 +11,7 @@
       <remap from="wheel_vel" to="lwheel_vel"/>
       <rosparam param="Kp">100</rosparam>
       <rosparam param="Ki">0</rosparam>
-      <rosparam param="Kd">0</rosparam>
+      <rosparam param="Kd">0.001</rosparam>
       <rosparam param="out_min">-255</rosparam>
       <rosparam param="out_max">800</rosparam>
       <rosparam param="rate">30</rosparam>
@@ -25,7 +25,7 @@
       <remap from="wheel_vel" to="rwheel_vel"/>
       <rosparam param="Kp">100</rosparam>
       <rosparam param="Ki">0</rosparam>
-      <rosparam param="Kd">0</rosparam>
+      <rosparam param="Kd">0.001</rosparam>
       <rosparam param="out_min">-255</rosparam>
       <rosparam param="out_max">800</rosparam>
       <rosparam param="rate">30</rosparam>
