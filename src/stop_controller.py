@@ -17,13 +17,11 @@ class StopDetector:
 
     def __init__(self, estimated_rtt):
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("camera/rgb/image_raw", Image, self.image_callback)
-        # self.image_sub = rospy.Subscriber("camera/rgb/image_color", Image, self.image_callback)
+        # self.image_sub = rospy.Subscriber("camera/rgb/image_raw", Image, self.image_callback)
+        self.image_sub = rospy.Subscriber("camera/rgb/image_color", Image, self.image_callback)
         self.odom_sub = rospy.Subscriber("odom", Odometry, self.odom_callback)
-        self.redLower1 = (0, 102, 66)
-        self.redUpper1 = (10, 240, 210)
-        self.redLower2 = (165, 102, 66)
-        self.redUpper2 = (180, 240, 210)
+        self.blackLower = (0, 0, 0)
+        self.blackUpper = (45, 45, 45)
         self.objectFound = False
         self.getOdom = False
         self.publisher = rospy.Publisher("stop", String, queue_size=10)
@@ -31,31 +29,44 @@ class StopDetector:
 
     def process(self, image):
         image = imutils.resize(image, width=600)
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        # hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-        mask1 = cv2.inRange(hsv, self.redLower1, self.redUpper1)
-        mask1 = cv2.erode(mask1, (20,20), iterations=2)
-        mask1 = cv2.dilate(mask1, (20,20), iterations=2)
+        mask1 = cv2.inRange(image, self.blackLower, self.blackUpper)
+        # mask1 = cv2.erode(mask1, (20,20), iterations=2)
+        # mask1 = cv2.dilate(mask1, (20,20), iterations=2)
 
-        mask2 = cv2.inRange(hsv, self.redLower2, self.redUpper2)
-        mask2 = cv2.erode(mask2, (20,20), iterations=2)
-        mask2 = cv2.dilate(mask2, (20,20), iterations=2)
+        # mask2 = cv2.inRange(hsv, self.redLower2, self.redUpper2)
+        # mask2 = cv2.erode(mask2, (20,20), iterations=2)
+        # mask2 = cv2.dilate(mask2, (20,20), iterations=2)
 
-        mask = mask1 | mask2
-        mask = cv2.dilate(mask, (20,20), iterations=2)
-        mask = cv2.erode(mask, (20,20), iterations=2)
+        # mask = mask1 | mask2
+        mask = mask1
+        size = 5
+        it = 3
+        kernel = np.ones((size,size),np.uint8)
+        mask = cv2.dilate(mask, kernel, iterations=it)
+        mask = cv2.erode(mask, kernel, iterations=it)
+        # mask = cv2.dilate(mask, kernel, iterations=it)
 
         cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
         center = None
 
-        if len(cnts) > 0:
-            c = max(cnts, key=cv2.contourArea)
-            ((x, y), radius) = cv2.minEnclosingCircle(c)
-            if radius > 100:
-                self.detected_object()
-                cv2.circle(image, (int(x), int(y)), int(radius), (0, 255, 255), 2)
+        print len(cnts)
 
-        cv2.imshow("image", image)
+        for cnt in cnts:
+            # c = max(cnts, key=cv2.contourArea)
+            # ((x, y), radius) = cv2.minEnclosingCircle(c)
+            epsilon = 0.1*cv2.arcLength(cnt,True)
+            approx = cv2.approxPolyDP(cnt,epsilon,True)
+            # print len(approx)
+            # if len(approx) == 8:
+            cv2.drawContours(mask, cnt, -1, (0, 100, 255), 3)
+            area = cv2.contourArea(cnt)
+            print area
+
+                # print "found stop sign"
+
+        cv2.imshow("image", mask)
         cv2.waitKey(1)
 
     def detected_object(self):
