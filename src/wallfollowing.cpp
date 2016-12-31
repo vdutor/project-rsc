@@ -82,14 +82,22 @@ void WallFollowing::publishMessage()
 #endif
 
     //publishing message
-    if (state != 3)
+    if (state == 1)
         pubMessage.publish(msg);
 }
 
 void WallFollowing::stopCallback(const std_msgs::String::ConstPtr& msg)
 {
     cout << "Received stop command" << endl;
-    state = 3;
+    state = 2;
+
+    // turn 90 degrees
+
+
+
+    // drive forward until distFront == CONSTANT
+
+
     // stop driving
     geometry_msgs::Twist twist_msg;
     twist_msg.linear.x = 0;
@@ -100,7 +108,6 @@ void WallFollowing::stopCallback(const std_msgs::String::ConstPtr& msg)
 //Subscriber
 void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 {
-    if (state == 3) return;
     //e = 0; // TODO
     int size = msg->ranges.size();
 
@@ -158,6 +165,7 @@ void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
         }
         state = 1;
     }
+    else if (state == 2) return;
 
     //Invoking method for publishing message
     publishMessage();

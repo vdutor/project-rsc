@@ -177,11 +177,11 @@ class StopDetector:
             self.objectFound = True
             self.getOdom = True
             self.detectionTime = time.time()
-        elif time.time() - self.detectionTime > self.estimated_rtt:
-            # broadcast at final destination
-            self.detectionTime = time.time()
-            self.getOdom = True
             self.publisher.publish("final destination")
+        # elif time.time() - self.detectionTime > self.estimated_rtt:
+            # # broadcast at final destination
+            # self.detectionTime = time.time()
+            # self.getOdom = True
 
 
     def image_callback(self,data):
