@@ -55,10 +55,11 @@ class StopDetector:
         self.publisher = rospy.Publisher("stop", String, queue_size=10)
         self.estimated_rtt = estimated_rtt
 
-        self.history_length = 20
+        self.history_length = 200
         self.history_sign = [(False , False)] * self.history_length
         self.history_it = 0
         self.history_analysis_lenth = 10
+        self.counter = 0
 
 
     def print_sign_history(self):
@@ -97,8 +98,8 @@ class StopDetector:
             if not entry[0]:
                 sum_sign_not_detected += 1
 
-        print "sum_detected ", sum_sign_detected
-        print "sum_sign_not_detected ", sum_sign_not_detected
+        # print "sum_detected ", sum_sign_detected
+        # print "sum_sign_not_detected ", sum_sign_not_detected
 
         # this line means:
             # at the end of the history there should be too much detections
@@ -189,8 +190,9 @@ class StopDetector:
             cv_image = self.bridge.imgmsg_to_cv2(data,"bgr8")
         except CvBridgeError as e:
             print(e)
-
-        self.process(cv_image)
+        if self.counter == 0:
+            self.process(cv_image)
+        self.counter = (self.counter + 1) % 10
 
     def odom_callback(self, data):
         if self.getOdom:

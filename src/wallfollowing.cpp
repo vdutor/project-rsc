@@ -88,18 +88,40 @@ void WallFollowing::publishMessage()
 
 void WallFollowing::stopCallback(const std_msgs::String::ConstPtr& msg)
 {
+    if (state != 1)
+        return;
+
     cout << "Received stop command" << endl;
     state = 2;
 
     // turn 90 degrees
+    geometry_msgs::Twist twist_msg;
+    ros::Rate r(10); // 10 hz
+    int counter = 28;
+    while (ros::ok() && counter > 0)
+    {
+        twist_msg.angular.z = -30;
+        twist_msg.linear.x = 0;
+        pubMessage.publish(twist_msg);
+        r.sleep();
+        counter--;
+    }
+    twist_msg.angular.z = 0;
+    twist_msg.linear.x = 0;
+    pubMessage.publish(twist_msg);
 
-
+    ros::Duration(2).sleep();
 
     // drive forward until distFront == CONSTANT
-
+    while (distFront > 2.7)
+    {
+        // drive forward
+        twist_msg.linear.x = 3;
+        twist_msg.angular.z = 0;
+        pubMessage.publish(twist_msg);
+    }
 
     // stop driving
-    geometry_msgs::Twist twist_msg;
     twist_msg.linear.x = 0;
     twist_msg.angular.z = 0;
     pubMessage.publish(twist_msg);
@@ -137,9 +159,9 @@ void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
     distFront = 5.;
     for (int i = -delta; i <= delta; i++)
     {
-        int j = size/2 + i;
+        int j = 384 + i;
         if (isnan(msg->ranges.at(j)) || msg->ranges.at(j) < 0.1) continue;
-        distFront =min(distFront,(double) msg->ranges.at(j));
+        distFront = min(distFront,(double) msg->ranges.at(j));
     }
 
     diffE = (distMin - wallDistance) - e;

@@ -39,9 +39,8 @@ void Pilot::enableRobot()
     serialPub.publish(msg);
 }
 
-void Pilot::setLSpeed(int rSpeed)
+void Pilot::setRSpeed(int rSpeed)
 {
-    // TODO: this is actually right wheel
     std_msgs::String msg;
 
     msg.data = "2v" + to_string(rSpeed);
@@ -49,14 +48,13 @@ void Pilot::setLSpeed(int rSpeed)
     serialPub.publish(msg);
 }
 
-void Pilot::setRSpeed(int rSpeed)
+void Pilot::setLSpeed(int lSpeed)
 {
-    // TODO: this is actually left wheel
     std_msgs::String msg;
 
     // multiply speed by factor to compensate for bad motor
-    // int adaptedSpeed = 1.018 * rSpeed;
-    msg.data = "1v" + to_string(rSpeed);
+    int adaptedSpeed = 1.018 * lSpeed;
+    msg.data = "1v" + to_string(adaptedSpeed);
     ROS_INFO("left wheel set to %s", msg.data.c_str());
     serialPub.publish(msg);
 }
@@ -77,7 +75,8 @@ void rWheelTargetCB(const std_msgs::Float32::ConstPtr& msg)
 
     //TODO: speed to voltage
     int voltage = msg->data;
-    pilot->setRSpeed(-voltage);
+    // LOL WTF BOOM
+    pilot->setLSpeed(-voltage);
 }
 
 void lWheelTargetCB(const std_msgs::Float32::ConstPtr& msg)
@@ -86,7 +85,8 @@ void lWheelTargetCB(const std_msgs::Float32::ConstPtr& msg)
 
     //TODO: speed to voltage
     int voltage = msg->data;
-    pilot->setLSpeed(voltage);
+    // LOL WTF BOOM
+    pilot->setRSpeed(voltage);
 }
 
 void serialRWheelEncoderCB(const std_msgs::Int16::ConstPtr& msg)

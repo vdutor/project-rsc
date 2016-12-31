@@ -16,8 +16,8 @@
 #define TWIST_PUB_TOPIC "twist"
 #define LASER_SCAN_SUB_TOPIC "scan"
 #define LEG_TRACK_SUB_TOPIC "people_tracker_measurements"
-#define TRANS_MULTIPLIER 10
-#define TRANS_MULTIPLIER_SLOW 4
+#define TRANS_MULTIPLIER 15
+#define TRANS_MULTIPLIER_SLOW 6
 #define ROT_MULTIPLIER 150
 #define ANGLE_DELTA .001
 #define X_DELTA .001
@@ -41,7 +41,7 @@ void laserScanCB(const sensor_msgs::LaserScan::ConstPtr& msg)
     int delta = 20;
     for (int i = -delta; i <= delta; i++)
     {
-        int j = size/2 + i;
+        int j = 384 + i;
         if (isnan(msg->ranges.at(j))) continue;
         distFront = min(distFront,(double) msg->ranges.at(j));
     }
@@ -72,6 +72,7 @@ void legTrackCB(const people_msgs::PositionMeasurementArray::ConstPtr& msg)
 {
     geometry_msgs::Point closestPair;
     geometry_msgs::Twist twist_msg;
+
     closestPair.x = 100;
     closestPair.y = 100;
 
@@ -108,11 +109,17 @@ void legTrackCB(const people_msgs::PositionMeasurementArray::ConstPtr& msg)
         twist_msg.linear.x = closestPair.x * TRANS_MULTIPLIER_SLOW;
         twist_msg.angular.z = - closestPair.y * ROT_MULTIPLIER;
     }
+    else if (closestPair.x > 3 && twist_msg.angular.z < 0.2)
+    {
+        twist_msg.linear.x = closestPair.x * TRANS_MULTIPLIER * 3;
+        twist_msg.angular.z = - closestPair.y * ROT_MULTIPLIER * 2;
+    }
     else
     {
         twist_msg.linear.x = closestPair.x * TRANS_MULTIPLIER;
         twist_msg.angular.z = - closestPair.y * ROT_MULTIPLIER * 1.5;
     }
+
     if (stopRobot)
     {
         twist_msg.linear.x = 0;
@@ -135,7 +142,11 @@ int main(int argc, char* argv[])
     predictedPos.y = 0;
 
     twistPub = nh.advertise<geometry_msgs::Twist>(TWIST_PUB_TOPIC, 100);
-    legTrackSub = nh.subscribe(LEG_TRACK_SUB_TOPIC, 100, legTrackCB);
+    ros::Rate poll_rate(100);
+    while(twistPub.getNumSubscribers() == 0)
+        poll_rate.sleep();
+
+    legTrackSub = nh.subscribe(LEG_TRACK_SUB_TOPIC, 1, legTrackCB);
     laserScanSub = nh.subscribe(LASER_SCAN_SUB_TOPIC, 100, laserScanCB);
 
     ros::spin();

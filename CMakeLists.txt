@@ -143,6 +143,7 @@ add_executable(face_detection_node src/face_detection.cpp src/face_detection_man
 add_executable(r2serial_node src/r2serial.cpp)
 add_executable(pilot_node src/pilot.cpp)
 add_executable(tracking_node src/tracking.cpp)
+add_executable(stop_calibration src/stop_calibration.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -154,6 +155,7 @@ target_link_libraries(face_detection_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES
 target_link_libraries(r2serial_node ${catkin_LIBRARIES})
 target_link_libraries(pilot_node ${catkin_LIBRARIES})
 target_link_libraries(tracking_node ${catkin_LIBRARIES})
+target_link_libraries(stop_calibration ${catkin_LIBRARIES})
 
 #############
 ## Install ##
