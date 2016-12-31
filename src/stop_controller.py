@@ -55,7 +55,7 @@ class StopDetector:
         self.publisher = rospy.Publisher("stop", String, queue_size=10)
         self.estimated_rtt = estimated_rtt
 
-        self.history_length = 200
+        self.history_length = 10
         self.history_sign = [(False , False)] * self.history_length
         self.history_it = 0
         self.history_analysis_lenth = 10
@@ -68,6 +68,8 @@ class StopDetector:
 
 
     def process(self, img):
+        h = img.shape[0]
+        img = img[:h/2, :]
         gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         letters = self.find_letters(gray_image, False)
         filtered = self.filter_letters(letters)
@@ -105,11 +107,13 @@ class StopDetector:
             # at the end of the history there should be too much detections
             # at the beginning of the history there should be a lot of detection
             # at the beginning of the history there should be a detection in the center
-        if sum_sign_not_detected / self.history_analysis_lenth >= 0.8 \
-           and sum_sign_detected / self.history_analysis_lenth >= 0.8 \
-           and any([entry[1] for entry in self.history_sign[:self.history_analysis_lenth]]):
-            print "STOP"
-            self.detected_sign()
+        # if sum_sign_not_detected / self.history_analysis_lenth >= 0.8 \
+           # and sum_sign_detected / self.history_analysis_lenth >= 0.8 \
+           # and any([entry[1] for entry in self.history_sign[:self.history_analysis_lenth]]):
+            # print "STOP"
+            # self.detected_sign()
+        if in_center and sign_detected:
+            print "::: STOP"
 
 
     def find_letters(self, image, show=True):
@@ -167,7 +171,7 @@ class StopDetector:
     def in_center(self, letters):
         letter_o = sorted(letters, key= lambda x: x.center[0])[2]
 
-        if abs(letter_o.x1 - 300) < 30:
+        if abs(letter_o.x1 - 300) < 100:
             return True
 
         return False
@@ -191,8 +195,9 @@ class StopDetector:
         except CvBridgeError as e:
             print(e)
         if self.counter == 0:
+            print "processing"
             self.process(cv_image)
-        self.counter = (self.counter + 1) % 10
+        self.counter = (self.counter + 1) % 30
 
     def odom_callback(self, data):
         if self.getOdom:
