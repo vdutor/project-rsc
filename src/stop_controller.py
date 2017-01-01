@@ -70,6 +70,8 @@ class StopDetector:
     def process(self, img):
         h = img.shape[0]
         img = img[:h/2, :]
+        # cv2.imshow("name", img)
+        # cv2.waitKey(0)
         gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         letters = self.find_letters(gray_image, False)
         filtered = self.filter_letters(letters)
@@ -79,41 +81,12 @@ class StopDetector:
         if sign_detected and self.in_center(filtered):
             in_center = True
 
-        print "Is this the stop sign? ", sign_detected
-        print "Is the stop sign in the center ", in_center
+        print "Detected :: ", sign_detected
+        print "Center   :: ", in_center
 
-        self.history_sign[self.history_it] = (sign_detected, in_center)
-        self.history_it += 1
-        if self.history_it >= self.history_length:
-            self.history_it = 0
-
-        # print "hist: "
-        # self.print_sign_history()
-
-        sum_sign_detected = 0
-        sum_sign_not_detected = 0
-        for entry in self.history_sign[:self.history_analysis_lenth]:
-            if entry[0]:
-                sum_sign_detected += 1
-
-        for entry in self.history_sign[-self.history_analysis_lenth:]:
-            if not entry[0]:
-                sum_sign_not_detected += 1
-
-        # print "sum_detected ", sum_sign_detected
-        # print "sum_sign_not_detected ", sum_sign_not_detected
-
-        # this line means:
-            # at the end of the history there should be too much detections
-            # at the beginning of the history there should be a lot of detection
-            # at the beginning of the history there should be a detection in the center
-        # if sum_sign_not_detected / self.history_analysis_lenth >= 0.8 \
-           # and sum_sign_detected / self.history_analysis_lenth >= 0.8 \
-           # and any([entry[1] for entry in self.history_sign[:self.history_analysis_lenth]]):
-            # print "STOP"
-            # self.detected_sign()
         if in_center and sign_detected:
-            print "::: STOP"
+            print "\n\t::: STOP :::\n"
+            detected_sign()
 
 
     def find_letters(self, image, show=True):
@@ -148,7 +121,7 @@ class StopDetector:
         for l in letters:
             if l.area < 500:
                 continue
-            if l.area > 3600:
+            if l.area > 10000:
                 continue
 
             filtered_list.append(l)
@@ -162,7 +135,7 @@ class StopDetector:
 
         for i in range(len(letters) - 1):
             distanceCenters = letters[i].dist(letters[i+1])
-            if distanceCenters > 60:
+            if distanceCenters > 150:
                 print "letters are too far apart"
                 return False
         return True
@@ -171,7 +144,7 @@ class StopDetector:
     def in_center(self, letters):
         letter_o = sorted(letters, key= lambda x: x.center[0])[2]
 
-        if abs(letter_o.x1 - 300) < 100:
+        if abs(letter_o.x1 - 320) < 100:
             return True
 
         return False
