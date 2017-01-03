@@ -48,6 +48,7 @@ public:
     int direction;       // 1 for wall on the right side of the robot (-1 for the left one).
     double angleMin;     // Angle, at which was measured the shortest distance.
     double distFront;    // Distance, measured by ranger in front of robot.
+    double distRight;    // Distance, measured by ranger in front of robot.
     ros::Publisher pubMessage;  // Object for publishing messages.
     bool arrived = false;
     double prev_z = 0;

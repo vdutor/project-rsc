@@ -51,6 +51,41 @@ void WallFollowing::publishMessage()
         fac = distFront - WALL_DISTANCE;
         msg.angular.z = direction * 10;
     }
+    else if (distRight > 3)
+    {
+        // turn -90 degrees
+        geometry_msgs::Twist twist_msg;
+        ros::Rate r(10); // 10 hz
+        int counter = 28;
+        while (ros::ok() && counter > 0)
+        {
+            twist_msg.angular.z = 30;
+            twist_msg.linear.x = 0;
+            pubMessage.publish(twist_msg);
+            r.sleep();
+            counter--;
+        }
+        // drive ahead
+        counter = 20;
+        while (ros::ok() && counter > 0)
+        {
+            twist_msg.angular.z = 0;
+            twist_msg.linear.x = 5;
+            pubMessage.publish(twist_msg);
+            r.sleep();
+            counter--;
+        }
+        // turn -90 degrees
+        counter = 28;
+        while (ros::ok() && counter > 0)
+        {
+            twist_msg.angular.z = 30;
+            twist_msg.linear.x = 0;
+            pubMessage.publish(twist_msg);
+            r.sleep();
+            counter--;
+        }
+    }
     else
     {
         double current_z = -ROTATION_FACTOR * (direction*(P*e + D*diffE) + angleCoef * (angleMin - PI*direction/2));
@@ -150,6 +185,17 @@ void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
         distFrontTemp = min(distFrontTemp,(double) msg->ranges.at(j));
     }
     distFront = distFrontTemp;
+
+    // find minimum distance in front of the robot
+    double distRightTemp = 0;
+    for (int i = -delta; i <= delta; i++)
+    {
+        int j = 128 + i;
+        if (isnan(msg->ranges.at(j)) || msg->ranges.at(j) < 0.1) continue;
+        distRightTemp += msg->ranges.at(j);
+    }
+    distRightTemp = distRightTemp / 2 * delta;
+    distRight = distRightTemp;
 
     diffE = (distMin - wallDistance) - e;
     e = distMin - wallDistance;
