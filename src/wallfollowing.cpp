@@ -9,7 +9,7 @@
 #define PUB_BUFFER_SIZE 1000    // Size of buffer for publisher.
 #define WALL_DISTANCE 0.5
 #define MAX_SPEED 5
-#define ROTATION_FACTOR 20
+#define ROTATION_FACTOR 50
 #define P_DEFAULT 5            // Proportional constant for controller
 #define D_DEFAULT 0             // Derivative constant for controller
 #define ANGLE_COEF 1            // Proportional constant for angle controller
@@ -110,21 +110,7 @@ void WallFollowing::stopCallback(const std_msgs::String::ConstPtr& msg)
     twist_msg.linear.x = 0;
     pubMessage.publish(twist_msg);
 
-    ros::Duration(2).sleep();
-
-    // drive forward until distFront == CONSTANT
-    while (distFront > 2.7)
-    {
-        // drive forward
-        twist_msg.linear.x = 3;
-        twist_msg.angular.z = 0;
-        pubMessage.publish(twist_msg);
-    }
-
-    // stop driving
-    twist_msg.linear.x = 0;
-    twist_msg.angular.z = 0;
-    pubMessage.publish(twist_msg);
+    state = 3;
 }
 
 //Subscriber
@@ -156,14 +142,14 @@ void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 
     // find minimum distance in front of the robot
     int delta = 20;
-    distFront = 5.;
+    double distFrontTemp = 5.;
     for (int i = -delta; i <= delta; i++)
     {
         int j = 384 + i;
         if (isnan(msg->ranges.at(j)) || msg->ranges.at(j) < 0.1) continue;
-        distFront = min(distFront,(double) msg->ranges.at(j));
+        distFrontTemp = min(distFrontTemp,(double) msg->ranges.at(j));
     }
-
+    distFront = distFrontTemp;
     diffE = (distMin - wallDistance) - e;
     e = distMin - wallDistance;
 
@@ -174,20 +160,51 @@ void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
     cout << " error: " << e << endl;
 #endif
 
+    geometry_msgs::Twist twist_msg;
     if (state == 0)
     {
         if (distFront > 0.5)
         {
             // drive forward
-            geometry_msgs::Twist twist_msg;
             twist_msg.linear.x = 5;
             twist_msg.angular.z = 0;
             pubMessage.publish(twist_msg);
             return;
         }
+        cout << "state becoming one" << endl;
         state = 1;
     }
     else if (state == 2) return;
+    else if (state == 3)
+    {
+        // drive forward until distFront == CONSTANT
+        if (distFront > 2.7)
+        {
+            // drive forward
+            twist_msg.linear.x = 3;
+            twist_msg.angular.z = 0;
+            pubMessage.publish(twist_msg);
+            cout << "After rotation, distFront is " << distFront << endl;
+        }
+        else
+        {
+            cout << "Arrived at destination" << endl;
+            // stop driving
+            twist_msg.linear.x = 0;
+            twist_msg.angular.z = 0;
+            pubMessage.publish(twist_msg);
+            state = 4;
+        }
+        return;
+    }
+    else if (state == 4)
+    {
+        // stop driving
+        twist_msg.linear.x = 0;
+        twist_msg.angular.z = 0;
+        pubMessage.publish(twist_msg);
+        return;
+    }
 
     //Invoking method for publishing message
     publishMessage();

@@ -70,8 +70,9 @@ class StopDetector:
     def process(self, img):
         h = img.shape[0]
         img = img[:h/2, :]
-        # cv2.imshow("name", img)
-        # cv2.waitKey(0)
+        cv2.imshow("name", img)
+        cv2.waitKey(1)
+        return
         gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         letters = self.find_letters(gray_image, False)
         filtered = self.filter_letters(letters)
@@ -86,8 +87,15 @@ class StopDetector:
 
         if in_center and sign_detected:
             print "\n\t::: STOP :::\n"
-            detected_sign()
+            # cv2.imshow("name", img)
+            # cv2.waitKey(0)
+            # for l in filtered:
+            #     print l
+            self.detected_sign()
 
+        # if sign_detected:
+        #     cv2.imshow("name", img)
+        #     cv2.waitKey(0)
 
     def find_letters(self, image, show=True):
         image = restoration.denoise_tv_chambolle(image, weight=0.1)
@@ -119,7 +127,7 @@ class StopDetector:
     def filter_letters(self, letters):
         filtered_list = []
         for l in letters:
-            if l.area < 500:
+            if l.area < 2000:
                 continue
             if l.area > 10000:
                 continue
@@ -144,7 +152,8 @@ class StopDetector:
     def in_center(self, letters):
         letter_o = sorted(letters, key= lambda x: x.center[0])[2]
 
-        if abs(letter_o.x1 - 320) < 100:
+        if abs(letter_o.x1 - 320) < 250 and \
+           abs(letter_o.center[1] - 110) < 50:
             return True
 
         return False
@@ -170,11 +179,11 @@ class StopDetector:
         if self.counter == 0:
             print "processing"
             self.process(cv_image)
-        self.counter = (self.counter + 1) % 30
+        self.counter = (self.counter + 1) % 10
 
     def odom_callback(self, data):
         if self.getOdom:
-            print data
+            # print data
             self.getOdom = False
 
 
