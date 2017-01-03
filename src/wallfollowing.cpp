@@ -10,8 +10,8 @@
 #define WALL_DISTANCE 0.5
 #define MAX_SPEED 5
 #define ROTATION_FACTOR 50
-#define P_DEFAULT 10            // Proportional constant for controller
-#define D_DEFAULT 5             // Derivative constant for controller
+#define P_DEFAULT 5            // Proportional constant for controller
+#define D_DEFAULT 0             // Derivative constant for controller
 #define ANGLE_COEF 1            // Proportional constant for angle controller
 #define DIRECTION -1            // 1 for wall on the left side of the robot (-1 for the right side).
 #define PUB_TOPIC "/twist"
@@ -51,44 +51,46 @@ void WallFollowing::publishMessage()
         fac = distFront - WALL_DISTANCE;
         msg.angular.z = direction * 10;
     }
-    else if (distRight > 3)
-    {
-        // turn -90 degrees
-        geometry_msgs::Twist twist_msg;
-        ros::Rate r(10); // 10 hz
-        int counter = 28;
-        while (ros::ok() && counter > 0)
-        {
-            twist_msg.angular.z = 30;
-            twist_msg.linear.x = 0;
-            pubMessage.publish(twist_msg);
-            r.sleep();
-            counter--;
-        }
-        // drive ahead
-        counter = 20;
-        while (ros::ok() && counter > 0)
-        {
-            twist_msg.angular.z = 0;
-            twist_msg.linear.x = 5;
-            pubMessage.publish(twist_msg);
-            r.sleep();
-            counter--;
-        }
-        // turn -90 degrees
-        counter = 28;
-        while (ros::ok() && counter > 0)
-        {
-            twist_msg.angular.z = 30;
-            twist_msg.linear.x = 0;
-            pubMessage.publish(twist_msg);
-            r.sleep();
-            counter--;
-        }
-    }
+    // else if (distRight > 3)
+    // {
+    //     // turn -90 degrees
+    //     geometry_msgs::Twist twist_msg;
+    //     ros::Rate r(10); // 10 hz
+    //     int counter = 28;
+    //     while (ros::ok() && counter > 0)
+    //     {
+    //         twist_msg.angular.z = 30;
+    //         twist_msg.linear.x = 0;
+    //         pubMessage.publish(twist_msg);
+    //         r.sleep();
+    //         counter--;
+    //     }
+    //     // drive ahead
+    //     counter = 20;
+    //     while (ros::ok() && counter > 0)
+    //     {
+    //         twist_msg.angular.z = 0;
+    //         twist_msg.linear.x = 5;
+    //         pubMessage.publish(twist_msg);
+    //         r.sleep();
+    //         counter--;
+    //     }
+    //     // turn -90 degrees
+    //     counter = 28;
+    //     while (ros::ok() && counter > 0)
+    //     {
+    //         twist_msg.angular.z = 30;
+    //         twist_msg.linear.x = 0;
+    //         pubMessage.publish(twist_msg);
+    //         r.sleep();
+    //         counter--;
+    //     }
+    // }
     else
     {
         double current_z = -ROTATION_FACTOR * (direction*(P*e + D*diffE) + angleCoef * (angleMin - PI*direction/2));
+        current_z = 0.7 * prev_z + 0.3 * current_z;
+        prev_z = current_z;
         msg.angular.z = current_z;
     }
 
@@ -171,7 +173,7 @@ void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
     }
 
     //Calculation of angles from indexes and storing data to class variables.
-    angleMin = (minIndex-size/2)*msg->angle_increment;
+    angleMin = (minIndex-384)*msg->angle_increment;
     double distMin;
     distMin = msg->ranges.at(minIndex);
 
@@ -187,15 +189,15 @@ void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
     distFront = distFrontTemp;
 
     // find minimum distance in front of the robot
-    double distRightTemp = 0;
-    for (int i = -delta; i <= delta; i++)
-    {
-        int j = 128 + i;
-        if (isnan(msg->ranges.at(j)) || msg->ranges.at(j) < 0.1) continue;
-        distRightTemp += msg->ranges.at(j);
-    }
-    distRightTemp = distRightTemp / 2 * delta;
-    distRight = distRightTemp;
+    // double distRightTemp = 0;
+    // for (int i = -delta; i <= delta; i++)
+    // {
+    //     int j = 128 + i;
+    //     if (isnan(msg->ranges.at(j)) || msg->ranges.at(j) < 0.1) continue;
+    //     distRightTemp += msg->ranges.at(j);
+    // }
+    // distRightTemp = distRightTemp / 2 * delta;
+    // distRight = distRightTemp;
 
     diffE = (distMin - wallDistance) - e;
     e = distMin - wallDistance;
@@ -229,7 +231,7 @@ void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
         if (distFront > 2.7)
         {
             // drive forward
-            twist_msg.linear.x = 3;
+            twist_msg.linear.x = 5;
             twist_msg.angular.z = 0;
             pubMessage.publish(twist_msg);
             cout << "After rotation, distFront is " << distFront << endl;
