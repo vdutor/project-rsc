@@ -10,8 +10,8 @@
 #define WALL_DISTANCE 0.5
 #define MAX_SPEED 5
 #define ROTATION_FACTOR 50
-#define P_DEFAULT 5            // Proportional constant for controller
-#define D_DEFAULT 0             // Derivative constant for controller
+#define P_DEFAULT 10            // Proportional constant for controller
+#define D_DEFAULT 5             // Derivative constant for controller
 #define ANGLE_COEF 1            // Proportional constant for angle controller
 #define DIRECTION -1            // 1 for wall on the left side of the robot (-1 for the right side).
 #define PUB_TOPIC "/twist"
@@ -150,6 +150,7 @@ void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
         distFrontTemp = min(distFrontTemp,(double) msg->ranges.at(j));
     }
     distFront = distFrontTemp;
+
     diffE = (distMin - wallDistance) - e;
     e = distMin - wallDistance;
 
@@ -157,7 +158,8 @@ void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
     cout << "angleMin: " << TO_DEGREE(angleMin);
     cout << " distMin: " << distMin;
     cout << " distFront: " << distFront;
-    cout << " error: " << e << endl;
+    cout << " error: " << e;
+    cout << " diffE: " << diffE << endl;
 #endif
 
     geometry_msgs::Twist twist_msg;
