@@ -9,8 +9,8 @@
 #define PUB_BUFFER_SIZE 1000    // Size of buffer for publisher.
 #define WALL_DISTANCE 0.5
 #define MAX_SPEED 5
-#define ROTATION_FACTOR 50
-#define P_DEFAULT 5            // Proportional constant for controller
+#define ROTATION_FACTOR 60
+#define P_DEFAULT 6            // Proportional constant for controller
 #define D_DEFAULT 0             // Derivative constant for controller
 #define ANGLE_COEF 1            // Proportional constant for angle controller
 #define DIRECTION -1            // 1 for wall on the left side of the robot (-1 for the right side).
@@ -49,7 +49,7 @@ void WallFollowing::publishMessage()
     if (distFront < WALL_DISTANCE * 1.5)
     {
         fac = distFront - WALL_DISTANCE;
-        msg.angular.z = direction * 10;
+        msg.angular.z = direction * 15;
     }
     // else if (distRight > 3)
     // {
@@ -102,11 +102,11 @@ void WallFollowing::publishMessage()
     }
     else if (distFront < wallDistance * 2)
     {
-        msg.linear.x = 0.5*maxSpeed;
+        msg.linear.x = 0.7*maxSpeed;
     }
     else if (fabs(angleMin)>1.70)
     {
-        msg.linear.x = 0.4*maxSpeed;
+        msg.linear.x = 0.6*maxSpeed;
     }
     else
     {
