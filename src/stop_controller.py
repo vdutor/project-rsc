@@ -85,7 +85,6 @@ class StopDetector:
         print "Center   :: ", in_center
 
         if in_center and sign_detected:
-            print "\n\t::: STOP :::\n"
             # cv2.imshow("name", img)
             # cv2.waitKey(0)
             # for l in filtered:
@@ -162,11 +161,12 @@ class StopDetector:
             self.objectFound = True
             self.getOdom = True
             self.detectionTime = time.time()
+        elif self.objectFound and time.time() - self.detectionTime > self.estimated_rtt:
+            # broadcast at final destination
+            self.detectionTime = time.time()
+            self.getOdom = True
+            print "\n\t::: STOP :::\n"
             self.publisher.publish("final destination")
-        # elif time.time() - self.detectionTime > self.estimated_rtt:
-            # # broadcast at final destination
-            # self.detectionTime = time.time()
-            # self.getOdom = True
 
 
     def image_callback(self,data):
