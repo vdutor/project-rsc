@@ -1,5 +1,5 @@
 <launch>
-		<include file="$(find openni_launch)/launch/openni.launch" />
+		<!-- <include file="$(find openni_launch)/launch/openni.launch" /> -->
 		<node pkg="project_rsc" type="face_detection_node" name="face_detection_node" output="screen"
     args="$(arg resources)" />
 </launch>

@@ -104,6 +104,7 @@ void FaceDetectionManager::recognize_face(Mat original, Mat gray, Rect face_cont
 
 void FaceDetectionManager::detect_faces(Mat frame)
 {
+    if (frame.empty()) return;
     // only do detections for every third frame
     if (frame_counter++ % 3 != 0)
         return;
@@ -117,8 +118,10 @@ void FaceDetectionManager::detect_faces(Mat frame)
     im_width = frame.cols;
     im_height = frame.rows;
     Mat original = frame.clone();
+    Mat bgr;
     Mat gray;
-    cvtColor(original, gray, CV_BGR2GRAY);
+    cvtColor(original, bgr, CV_BayerBG2BGR);
+    cvtColor(bgr, gray, CV_BGR2GRAY);
     vector<Rect_<int>> faces;
 
     face_cascade.detectMultiScale(gray, faces);
@@ -128,7 +131,7 @@ void FaceDetectionManager::detect_faces(Mat frame)
         rectangle(original, faces[i], CV_RGB(0, 255, 255), 2);
     }
 
-    imshow("face_recognizer", original);
+    imshow("face_recognizer", bgr);
     waitKey(1);
 
     history_itr++;

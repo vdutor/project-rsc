@@ -70,9 +70,8 @@ class StopDetector:
     def process(self, img):
         h = img.shape[0]
         img = img[:h/2, :]
-        cv2.imshow("name", img)
-        cv2.waitKey(1)
-        return
+        # cv2.imshow("name", img)
+        # cv2.waitKey(1)
         gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         letters = self.find_letters(gray_image, False)
         filtered = self.filter_letters(letters)
@@ -176,7 +175,7 @@ class StopDetector:
         except CvBridgeError as e:
             print(e)
         if self.counter == 0:
-            print "processing"
+            print "processing at ", time.strftime('%H:%M:%S')
             self.process(cv_image)
         self.counter = (self.counter + 1) % 10
 

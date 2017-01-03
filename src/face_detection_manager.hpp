@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <opencv2/opencv.hpp>
-#include "opencv2/face.hpp"
+#include <opencv2/face.hpp>
 
 #define HISTORY_LENGTH 30
 #define NUM_PEOPLE 3

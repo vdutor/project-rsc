@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
     ros::init(argc, argv, "faceRecognition");
 
     ros::NodeHandle nh;
-    ros::Subscriber sub = nh.subscribe("camera/rgb/image_color", 100, image_rgb_cb);
+    ros::Subscriber sub = nh.subscribe("camera/rgb/image_raw", 100, image_rgb_cb);
 
     ros::spin();
 
