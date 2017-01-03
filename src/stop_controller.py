@@ -97,22 +97,21 @@ class StopDetector:
 
         label_image = measure.label(cleared)
         borders = np.logical_xor(bw, cleared)
-
         label_image[borders] = -1
-        image_label_overlay = label2rgb(label_image, image=image)
+        # image_label_overlay = label2rgb(label_image, image=image)
 
-        fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(12, 12))
-        ax.imshow(image_label_overlay)
+        # fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(12, 12))
+        # ax.imshow(image_label_overlay)
 
         result = []
         for region in regionprops(label_image):
             minr, minc, maxr, maxc = region.bbox
             result.append(Letter(minc, minr, maxc, maxr))
-            rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr, fill=False, edgecolor='red', linewidth=2)
-            ax.add_patch(rect)
+            # rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr, fill=False, edgecolor='red', linewidth=2)
+            # ax.add_patch(rect)
 
-        if show:
-            plt.show()
+        # if show:
+            # plt.show()
 
         return result
 
