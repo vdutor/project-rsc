@@ -51,41 +51,6 @@ void WallFollowing::publishMessage()
         fac = distFront - WALL_DISTANCE;
         msg.angular.z = direction * 15;
     }
-    // else if (distRight > 3)
-    // {
-    //     // turn -90 degrees
-    //     geometry_msgs::Twist twist_msg;
-    //     ros::Rate r(10); // 10 hz
-    //     int counter = 28;
-    //     while (ros::ok() && counter > 0)
-    //     {
-    //         twist_msg.angular.z = 30;
-    //         twist_msg.linear.x = 0;
-    //         pubMessage.publish(twist_msg);
-    //         r.sleep();
-    //         counter--;
-    //     }
-    //     // drive ahead
-    //     counter = 20;
-    //     while (ros::ok() && counter > 0)
-    //     {
-    //         twist_msg.angular.z = 0;
-    //         twist_msg.linear.x = 5;
-    //         pubMessage.publish(twist_msg);
-    //         r.sleep();
-    //         counter--;
-    //     }
-    //     // turn -90 degrees
-    //     counter = 28;
-    //     while (ros::ok() && counter > 0)
-    //     {
-    //         twist_msg.angular.z = 30;
-    //         twist_msg.linear.x = 0;
-    //         pubMessage.publish(twist_msg);
-    //         r.sleep();
-    //         counter--;
-    //     }
-    // }
     else
     {
         double current_z = -ROTATION_FACTOR * (direction*(P*e + D*diffE) + angleCoef * (angleMin - PI*direction/2));
@@ -134,7 +99,7 @@ void WallFollowing::stopCallback(const std_msgs::String::ConstPtr& msg)
     // turn 90 degrees
     geometry_msgs::Twist twist_msg;
     ros::Rate r(10); // 10 hz
-    int counter = 28;
+    int counter = 29;
     while (ros::ok() && counter > 0)
     {
         twist_msg.angular.z = -30;
@@ -228,7 +193,7 @@ void WallFollowing::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
     else if (state == 3)
     {
         // drive forward until distFront == CONSTANT
-        if (distFront > 2.7)
+        if (distFront > 2.65)
         {
             // drive forward
             twist_msg.linear.x = 5;

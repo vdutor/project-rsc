@@ -97,7 +97,14 @@ class StopDetector:
 
     def find_letters(self, image, show=True):
         image = restoration.denoise_tv_chambolle(image, weight=0.1)
-        thresh = threshold_otsu(image)
+
+        try:
+            thresh = threshold_otsu(image)
+        except Exception:
+            print("Could not treshold")
+            result = []
+            return result
+
         bw = closing(image > thresh, square(2))
         cleared = bw.copy()
 
@@ -161,12 +168,12 @@ class StopDetector:
             self.objectFound = True
             self.getOdom = True
             self.detectionTime = time.time()
-        elif self.objectFound and time.time() - self.detectionTime > self.estimated_rtt:
-            # broadcast at final destination
-            self.detectionTime = time.time()
-            self.getOdom = True
             print "\n\t::: STOP :::\n"
             self.publisher.publish("final destination")
+        # elif self.objectFound and time.time() - self.detectionTime > self.estimated_rtt:
+        #     # broadcast at final destination
+        #     self.detectionTime = time.time()
+        #     self.getOdom = True
 
 
     def image_callback(self,data):
